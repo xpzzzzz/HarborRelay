@@ -1,19 +1,11 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
-from pydantic import Field
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     agent_framework: str = "langgraph"
-    referral_enabled: bool = True
-    referral_planner: Literal["rules", "model"] = "rules"
-    referral_action_format: Literal["schema", "prompt"] = "schema"
-    referral_max_steps: int = Field(default=8,ge=1,le=20)
-    referral_max_tool_calls: int = Field(default=6,ge=1,le=12)
-    referral_timeout_seconds: float = Field(default=15,gt=0,le=120)
     ai_provider: str = "ollama"
     ai_temperature: float = 0.35
     ai_max_tokens: int = 512
@@ -71,7 +63,6 @@ class Settings(BaseSettings):
     tool_queue_poll_interval_seconds: float = 1.0
     tool_queue_batch_size: int = 10
     tool_queue_max_attempts: int = 3
-    tool_queue_stale_seconds: int = Field(default=300,ge=60)
     tool_queue_retry_delay_seconds: float = 15.0
     tool_queue_excel_workers: int = 1
     tool_queue_email_workers: int = 2

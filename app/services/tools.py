@@ -3,8 +3,6 @@ from __future__ import annotations
 import smtplib
 import ssl
 import threading
-import os
-import tempfile
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
@@ -13,9 +11,8 @@ from openpyxl import Workbook, load_workbook
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
-from app.core.security import authorize_case
 from app.core.enums import RiskCaseStatus, ToolStatus
-from app.models.entities import AlertRecord, CaseNote, ExcelRecord, PsychologicalReport, RiskCase, UserAccount, ToolAuditRecord
+from app.models.entities import AlertRecord, CaseNote, ExcelRecord, PsychologicalReport, RiskCase, UserAccount
 from app.services.skills import MindBridgeSkillLibrary
 
 
@@ -46,17 +43,8 @@ class ToolOrchestrationService:
                 sheet = workbook.active
                 sheet.title = "HarborRelay Risk Ledger"
                 sheet.append(["reportId", "riskLevel", "emotion", "confidence", "summary", "createdAt"])
-            # Recover the file-written / DB-not-committed crash window using the report id column.
-            if not any(row[0] == report.id for row in sheet.iter_rows(min_row=2, values_only=True)):
-                sheet.append([report.id, report.risk_level, report.emotion, report.confidence, report.summary, report.created_at.isoformat()])
-            with tempfile.NamedTemporaryFile(dir=path.parent, suffix=".xlsx", delete=False) as temp:
-                temporary_path = Path(temp.name)
-            try:
-                workbook.save(temporary_path)
-                os.replace(temporary_path, path)
-            finally:
-                workbook.close()
-                temporary_path.unlink(missing_ok=True)
+            sheet.append([report.id, report.risk_level, report.emotion, report.confidence, report.summary, report.created_at.isoformat()])
+            workbook.save(path)
         record = ExcelRecord(report_id=report.id, file_path=str(path), status=ToolStatus.SUCCESS.value, message="Excel 台账已写入")
         self.db.add(record)
         self.db.commit()
@@ -71,7 +59,7 @@ class ToolOrchestrationService:
             report_id=report.id,
             risk_level=report.risk_level,
             status=RiskCaseStatus.OPEN.value,
-            owner="unassigned",
+            owner=self._primary_owner(),
             summary=report.summary,
             handoff_summary=MindBridgeSkillLibrary.counselor_handoff_summary(report, user),
         )
@@ -91,26 +79,13 @@ class ToolOrchestrationService:
         self.db.commit()
         return record
 
-    def _case_for_actor(self, case_id: int, actor: UserAccount, action: str) -> tuple[RiskCase, UserAccount]:
-        case = self.db.query(RiskCase).filter_by(id=case_id).with_for_update().first()
+    def acknowledge_case(self, case_id: int, actor: str, note: str = "") -> RiskCase:
+        case = self.db.get(RiskCase, case_id)
         if case is None:
-            raise RuntimeError("Case not found")
-        try:
-            principal = authorize_case(self.db, case, actor)
-        except PermissionError:
-            self.db.add(ToolAuditRecord(report_id=case.report_id, tool_name=action, policy="case_access",
-                                       allowed=False, status="BLOCKED", reason="Case access denied", payload="{}"))
-            self.db.commit()
-            raise
-        self.db.add(ToolAuditRecord(report_id=case.report_id, tool_name=action, policy="case_access",
-                                   allowed=True, status="AUTHORIZED", reason=f"principal_id={principal.id}", payload="{}"))
-        return case, principal
-
-    def acknowledge_case(self, case_id: int, actor: UserAccount, note: str = "") -> RiskCase:
-        case, principal = self._case_for_actor(case_id, actor, "CASE_ACKNOWLEDGE")
+            raise RuntimeError(f"case {case_id} not found")
         if case.status not in (RiskCaseStatus.OPEN.value, RiskCaseStatus.ALERT_SENT.value):
             raise ValueError("该个案当前状态不能重复接手")
-        actor_name = principal.username
+        actor_name = actor.strip() or "unknown"
         case.status = RiskCaseStatus.ACKNOWLEDGED.value
         case.owner = actor_name
         case.acknowledged_by = actor_name
@@ -121,20 +96,24 @@ class ToolOrchestrationService:
         self.db.commit()
         return case
 
-    def add_case_note(self, case_id: int, actor: UserAccount, note: str) -> CaseNote:
-        case, principal = self._case_for_actor(case_id, actor, "CASE_NOTE_ADD")
+    def add_case_note(self, case_id: int, actor: str, note: str) -> CaseNote:
+        case = self.db.get(RiskCase, case_id)
+        if case is None:
+            raise RuntimeError(f"case {case_id} not found")
         if case.status != RiskCaseStatus.ACKNOWLEDGED.value:
             raise ValueError("请先接手未关闭的个案")
         if not note.strip():
             raise ValueError("跟进记录不能为空")
         case.updated_at = datetime.utcnow()
         self.db.add(case)
-        record = self._add_case_note(case.id, principal.username, note.strip())
+        record = self._add_case_note(case.id, actor.strip() or "unknown", note.strip())
         self.db.commit()
         return record
 
-    def close_case(self, case_id: int, actor: UserAccount, note: str) -> RiskCase:
-        case, principal = self._case_for_actor(case_id, actor, "CASE_CLOSE")
+    def close_case(self, case_id: int, actor: str, note: str) -> RiskCase:
+        case = self.db.get(RiskCase, case_id)
+        if case is None:
+            raise RuntimeError(f"case {case_id} not found")
         if case.status != RiskCaseStatus.ACKNOWLEDGED.value:
             raise ValueError("只有已接手的个案可以关闭")
         if not note.strip():
@@ -142,7 +121,7 @@ class ToolOrchestrationService:
         case.status = RiskCaseStatus.CLOSED.value
         case.updated_at = datetime.utcnow()
         self.db.add(case)
-        self._add_case_note(case.id, principal.username, f"关闭个案：{note.strip()}")
+        self._add_case_note(case.id, actor.strip() or "unknown", f"关闭个案：{note.strip()}")
         self.db.commit()
         return case
 
@@ -246,12 +225,7 @@ class ToolOrchestrationService:
     def _send_message(self, server: smtplib.SMTP, message: EmailMessage) -> None:
         if self.settings.smtp_username:
             server.login(self.settings.smtp_username, self.settings.smtp_password)
-        refused = server.send_message(message)
-        if refused:
-            # smtplib returns normally when only some recipients were accepted.
-            # Do not mark the complete alert successful in that case. Retries are
-            # at least once and may reach previously accepted recipients again.
-            raise smtplib.SMTPRecipientsRefused(refused)
+        server.send_message(message)
 
     def _email_body(self, report: PsychologicalReport, case: RiskCase | None = None) -> str:
         user = self.db.get(UserAccount, report.user_id)

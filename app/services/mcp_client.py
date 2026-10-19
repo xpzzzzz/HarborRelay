@@ -20,7 +20,7 @@ class MindBridgeMcpToolClient:
 
     async def handle_report(self, report_id: int, risk_level: str | None) -> list[str]:
         try:
-            async with self._session(report_id) as session:
+            async with self._session() as session:
                 results = [
                     await self._call_tool(session, "mindbridge_excel_report", {"report_id": report_id}),
                 ]
@@ -40,7 +40,7 @@ class MindBridgeMcpToolClient:
             raise McpToolError(f"MCP 工具调用异常：{type(exc).__name__}: {exc}") from exc
 
     @asynccontextmanager
-    async def _session(self, report_id: int) -> AsyncIterator[Any]:
+    async def _session(self) -> AsyncIterator[Any]:
         try:
             from mcp import ClientSession, StdioServerParameters
             from mcp.client.stdio import stdio_client
@@ -49,7 +49,6 @@ class MindBridgeMcpToolClient:
 
         project_root = self.settings.project_root
         env = os.environ.copy()
-        env["HARBORRELAY_MCP_REPORT_ID"] = str(report_id)
         python_path = env.get("PYTHONPATH")
         env["PYTHONPATH"] = str(project_root) if not python_path else f"{project_root}{os.pathsep}{python_path}"
 

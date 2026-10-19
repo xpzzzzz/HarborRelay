@@ -14,7 +14,7 @@ from app.core.config import Settings
 from app.core.database import SessionLocal
 from app.core.enums import RiskLevel, ToolJobKind, ToolJobStatus, ToolStatus
 from app.models.entities import DeadLetterRecord, ExcelRecord, PsychologicalReport, ToolJob
-from app.services.tool_governance import ToolGovernanceService, ToolPolicyRegistry
+from app.services.tool_governance import ToolGovernanceService
 from app.services.tools import ToolOrchestrationService
 
 
@@ -26,10 +26,7 @@ class ToolQueueService:
         self.db = db
         self.settings = settings
 
-    def enqueue_report(self, report_id: int, risk_level: str | None, *, commit: bool = True) -> list[ToolJob]:
-        # Serialize enqueue for the same report on MySQL; use persisted risk, never caller risk.
-        report = self.db.query(PsychologicalReport).filter_by(id=report_id).with_for_update().one()
-        risk_level = report.risk_level
+    def enqueue_report(self, report_id: int, risk_level: str | None) -> list[ToolJob]:
         excel_job = self._find_or_create(ToolJobKind.EXCEL_REPORT.value, report_id)
         jobs = [excel_job]
         case_job = None
@@ -39,14 +36,14 @@ class ToolQueueService:
         if risk_level == RiskLevel.HIGH.value:
             alert_job = self._find_or_create(ToolJobKind.ALERT_SEND.value, report_id, case_job.id if case_job else None)
             jobs.append(alert_job)
-        if commit:
-            self.db.commit()
+        self.db.commit()
         return jobs
 
     def _find_or_create(self, kind: str, report_id: int, depends_on_job_id: int | None = None) -> ToolJob:
         existing = (
             self.db.query(ToolJob)
             .filter(ToolJob.report_id == report_id, ToolJob.kind == kind)
+            .filter(ToolJob.status.in_([ToolJobStatus.PENDING.value, ToolJobStatus.RUNNING.value, ToolJobStatus.SUCCESS.value]))
             .first()
         )
         if existing is not None:
@@ -124,7 +121,6 @@ class ToolQueueWorker:
             self.stop_event.wait(self.settings.tool_queue_poll_interval_seconds)
 
     def _dispatch_once(self) -> None:
-        self._recover_running_jobs()
         db = SessionLocal()
         try:
             now = datetime.utcnow()
@@ -136,11 +132,10 @@ class ToolQueueWorker:
                 .all()
             )
             for job in jobs:
-                claimed = db.query(ToolJob).filter(ToolJob.id==job.id, ToolJob.status==ToolJobStatus.PENDING.value,ToolJob.run_after<=now).update(
-                    {"status": ToolJobStatus.RUNNING.value, "updated_at": datetime.utcnow()}, synchronize_session=False)
+                job.status = ToolJobStatus.RUNNING.value
+                job.updated_at = datetime.utcnow()
+                db.add(job)
                 db.commit()
-                if not claimed:
-                    continue
                 executor = self._executor_for(job)
                 executor.submit(self._run_job, job.id)
         finally:
@@ -157,16 +152,6 @@ class ToolQueueWorker:
             job = db.get(ToolJob, job_id)
             if job is None or job.status != ToolJobStatus.RUNNING.value:
                 return
-            allowed, _, _ = ToolPolicyRegistry.authorize(job.kind, db.get(PsychologicalReport, job.report_id))
-            if not allowed:
-                job.attempts = job.max_attempts
-                self._execute(db, job)  # Records the refusal before raising.
-            if job.depends_on_job_id:
-                dependency = db.get(ToolJob, job.depends_on_job_id)
-                if dependency is None or dependency.status == ToolJobStatus.DEAD.value:
-                    job.attempts = job.max_attempts
-                    db.commit()
-                    raise RuntimeError("Dependency unavailable or dead")
             if not self._dependency_ready(db, job):
                 self._requeue(db, job, self._dependency_wait_reason(job), 2.0)
                 return
@@ -187,7 +172,6 @@ class ToolQueueWorker:
             db.commit()
         except Exception as exc:
             try:
-                db.rollback()
                 self._fail_or_dead_letter(db, job_id, exc)
             except Exception:
                 logger.exception("Failed to record tool job failure")
@@ -196,19 +180,6 @@ class ToolQueueWorker:
 
     def _execute(self, db: Session, job: ToolJob) -> None:
         report = db.get(PsychologicalReport, job.report_id)
-        governance = ToolGovernanceService(db)
-        audit = governance.start_job(job, report)
-        if not audit.allowed:
-            raise PermissionError("Tool policy denied execution")
-        try:
-            self._execute_allowed(db, job, report)
-        except Exception as exc:
-            db.rollback()
-            governance.finish(audit, "FAILED", type(exc).__name__)
-            raise
-        governance.finish(audit, "SUCCESS")
-
-    def _execute_allowed(self, db: Session, job: ToolJob, report: PsychologicalReport | None) -> None:
         if report is None:
             raise RuntimeError(f"report {job.report_id} not found")
         tools = ToolOrchestrationService(db, self.settings)
@@ -267,9 +238,7 @@ class ToolQueueWorker:
         job = db.get(ToolJob, job_id)
         if job is None:
             return
-        message = f"{type(exc).__name__}: tool_execution_failed"
-        if isinstance(exc, PermissionError):
-            job.attempts = job.max_attempts
+        message = f"{type(exc).__name__}: {exc}"
         job.last_error = message
         job.updated_at = datetime.utcnow()
         if job.attempts >= job.max_attempts:
@@ -295,10 +264,13 @@ class ToolQueueWorker:
     def _recover_running_jobs(self) -> None:
         db = SessionLocal()
         try:
-            cutoff = datetime.utcnow() - timedelta(seconds=self.settings.tool_queue_stale_seconds)
-            db.query(ToolJob).filter(ToolJob.status == ToolJobStatus.RUNNING.value, ToolJob.updated_at < cutoff).update(
-                {"status":ToolJobStatus.PENDING.value,"last_error":"服务重启后恢复未完成任务",
-                 "run_after":datetime.utcnow(),"updated_at":datetime.utcnow()},synchronize_session=False)
+            rows = db.query(ToolJob).filter(ToolJob.status == ToolJobStatus.RUNNING.value).all()
+            for job in rows:
+                job.status = ToolJobStatus.PENDING.value
+                job.last_error = "服务重启后恢复未完成任务"
+                job.run_after = datetime.utcnow()
+                job.updated_at = datetime.utcnow()
+                db.add(job)
             db.commit()
         finally:
             db.close()

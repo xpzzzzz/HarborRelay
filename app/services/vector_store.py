@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import hashlib
-import math
 import re
+import shutil
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 import httpx
 
 from app.core.config import Settings
 from app.models.entities import KnowledgeChunk
-from app.services.vector_snapshots import INCOMPLETE, export_collection, restore_collection, synchronized, vector_lock
 
 
 PRIMARY_RETRIEVAL_LABEL = "Chroma vector + BM25 hybrid + local reranker"
@@ -35,7 +35,7 @@ class ChromaKnowledgeStore:
 
     SUPPORTED_EMBEDDING_PROVIDERS = {"openai", "ollama"}
 
-    def __init__(self, settings: Settings, *, _restoring: bool = False):
+    def __init__(self, settings: Settings):
         self.settings = settings
         self.embedding_provider = settings.knowledge_embedding_provider.strip().lower()
         self.embedding_model = self._configured_embedding_model()
@@ -46,11 +46,9 @@ class ChromaKnowledgeStore:
         self.collection_name = self._build_collection_name()
         self.client = None
         self.collection = None
-        if (self.persist_dir / INCOMPLETE).exists() and not _restoring:
-            raise VectorStoreUnavailable("Vector directory contains an incomplete restore; use a new destination")
 
         if not settings.knowledge_vector_enabled:
-            self._set_unavailable("Chroma vector retrieval is disabled.")
+            self.error = "Chroma vector retrieval is disabled."
             return
         if self.embedding_provider not in self.SUPPORTED_EMBEDDING_PROVIDERS:
             self._set_unavailable(
@@ -134,7 +132,6 @@ class ChromaKnowledgeStore:
             self.record_error(exc)
             return False
 
-    @synchronized
     def upsert_chunks(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> int:
         if len(chunks) != len(embeddings):
             raise VectorStoreUnavailable("Embedding count did not match the knowledge chunk count.")
@@ -157,31 +154,24 @@ class ChromaKnowledgeStore:
         self.snapshot()
         return len(rows)
 
-    @synchronized
     def sync_chunks(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> int:
         valid_ids = {self._id(int(chunk.id)) for chunk in chunks if chunk.id is not None}
         current_ids = set(self.collection.get().get("ids", []))
         stale_ids = sorted(current_ids - valid_ids)
         if stale_ids:
             self.collection.delete(ids=stale_ids)
-        if not chunks:
-            self.snapshot()
-            return 0
         return self.upsert_chunks(chunks, embeddings)
 
-    @synchronized
     def has_exact_chunk_ids(self, chunks: list[KnowledgeChunk]) -> bool:
         valid_ids = {self._id(int(chunk.id)) for chunk in chunks if chunk.id is not None}
         current_ids = set(self.collection.get().get("ids", []))
         return current_ids == valid_ids
 
-    @synchronized
     def delete_source(self, source: str) -> None:
         if not self.can_embed:
             return
         self.collection.delete(where={"source": source})
 
-    @synchronized
     def query(self, query_embedding: list[float], top_k: int) -> list[VectorSearchHit]:
         vector = self._validate_embeddings([query_embedding], 1)[0]
         result = self.collection.query(
@@ -229,22 +219,18 @@ class ChromaKnowledgeStore:
             self.record_error(wrapped)
             raise wrapped from exc
 
-    @synchronized
     def snapshot(self) -> str | None:
         if not self.can_embed:
             return None
         if not self.persist_dir.exists():
             return None
-        return export_collection(self)
+        snapshot_root = self._resolve_path(self.settings.chroma_snapshot_dir)
+        snapshot_root.mkdir(parents=True, exist_ok=True)
+        destination = snapshot_root / datetime.utcnow().strftime("%Y%m%d-%H%M%S-%f")
+        shutil.copytree(self.persist_dir, destination)
+        self._prune_snapshots(snapshot_root)
+        return str(destination)
 
-    def write_lock(self):
-        return vector_lock(self.persist_dir)
-
-    @classmethod
-    def restore_snapshot(cls, snapshot: str | Path, settings: Settings):
-        return restore_collection(cls, snapshot, settings)
-
-    @synchronized
     def count(self) -> int:
         if not self.can_embed:
             return 0
@@ -293,8 +279,6 @@ class ChromaKnowledgeStore:
                 raise VectorStoreUnavailable("Embedding response contained an empty or invalid vector.")
             if not all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in embedding):
                 raise VectorStoreUnavailable("Embedding response contained a non-numeric value.")
-            if not all(math.isfinite(value) for value in embedding):
-                raise VectorStoreUnavailable("Embedding response contained a non-finite value.")
             resolved.append([float(value) for value in embedding])
         dimensions = {len(embedding) for embedding in resolved}
         if len(dimensions) != 1:
@@ -370,6 +354,12 @@ class ChromaKnowledgeStore:
     def _resolve_path(self, value: str) -> Path:
         path = Path(value)
         return path if path.is_absolute() else self.settings.project_root / path
+
+    def _prune_snapshots(self, snapshot_root: Path) -> None:
+        keep = max(1, self.settings.chroma_snapshot_keep)
+        snapshots = sorted([path for path in snapshot_root.iterdir() if path.is_dir()], reverse=True)
+        for stale in snapshots[keep:]:
+            shutil.rmtree(stale, ignore_errors=True)
 
     def _id(self, chunk_id: int) -> str:
         return f"knowledge-chunk-{chunk_id}"

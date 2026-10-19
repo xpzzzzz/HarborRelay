@@ -1,7 +1,0 @@
-{
-  "before_guard_fix_app_sha256": "930c25958ce782101fd3bad68e7e10b3794b3245e80ef6310155e64ac8096978",
-  "after_guard_fix_measured_app_sha256": "2da35dcaae19d44d8f7b475f79b5b49eb4f3a4929e226e379990664a045328cb",
-  "current_app_sha256": "3ce737c56f0242600a393e09dbaee5627d37804c56bc5ee1526eff9ab6ca4609",
-  "old_source_reconstruction_verified": true,
-  "last_change": "Remove unused MessageRole import in app/agents/runtime.py; planner and executor source unchanged"
-}

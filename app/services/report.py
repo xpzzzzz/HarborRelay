@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 from sqlalchemy.orm import Session
-from app.core.security import authorize_case
 
 from app.models.entities import (
     AlertRecord,
@@ -84,14 +83,9 @@ class ReportService:
             for row in rows
         ]
 
-    def risk_cases(self, actor: UserAccount) -> list[RiskCaseResponse]:
-        query = self.db.query(RiskCase)
-        if "ROLE_ADMIN" not in actor.roles:
-            if "ROLE_COUNSELOR" not in actor.roles:
-                raise PermissionError("Staff role required")
-            query = query.filter(RiskCase.owner.in_([actor.username, "unassigned"]))
+    def risk_cases(self) -> list[RiskCaseResponse]:
         rows = (
-            query
+            self.db.query(RiskCase)
             .order_by(RiskCase.updated_at.desc())
             .limit(100)
             .all()
@@ -114,11 +108,7 @@ class ReportService:
             updatedAt=row.updated_at,
         )
 
-    def case_notes(self, case_id: int, actor: UserAccount) -> list[CaseNoteResponse]:
-        case = self.db.get(RiskCase, case_id)
-        if case is None:
-            raise ValueError("Case not found")
-        authorize_case(self.db, case, actor)
+    def case_notes(self, case_id: int) -> list[CaseNoteResponse]:
         rows = (
             self.db.query(CaseNote)
             .filter(CaseNote.case_id == case_id)

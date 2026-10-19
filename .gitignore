@@ -8,7 +8,6 @@ venv/
 .idea/
 .vscode/
 .pytest_cache/
-.ruff_cache/
 __MACOSX/
 *.log
 *.pem

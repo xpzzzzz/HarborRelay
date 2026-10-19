@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
-import unicodedata
-from time import perf_counter
 from typing import Iterable
 
 import httpx
@@ -65,38 +62,14 @@ class PromptTemplates:
 class AiClient:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.calls: list[dict] = []
-        self._last_provider_usage: dict | None = None
 
-    def complete(self, messages: list[AiMessage], *, timeout_seconds: float = 60, json_schema: dict | None = None) -> str:
-        started = perf_counter()
-        output = ""
-        error = None
-        self._last_provider_usage = None
-        try:
-            provider = self.settings.ai_provider.lower()
-            output = (self._ollama(messages, stream=False, timeout_seconds=timeout_seconds, json_schema=json_schema) if provider == "ollama"
-                      else self._openai(messages, stream=False, timeout_seconds=timeout_seconds) if provider == "openai" else self._mock(messages))
-            return output
-        except Exception as exc:
-            error = type(exc).__name__
-            raise
-        finally:
-            self.calls.append(self.call_metadata(started, sum(len(m.content) for m in messages), len(output), error,
-                                                 provider_usage=self._last_provider_usage))
-
-    def call_metadata(self, started, input_chars, output_chars, error=None, *, provider_usage=None):
+    def complete(self, messages: list[AiMessage]) -> str:
         provider = self.settings.ai_provider.lower()
-        metadata = {"provider": provider, "model": self.settings.ollama_model if provider == "ollama" else self.settings.openai_model if provider == "openai" else "mock",
-                "latency_ms": (perf_counter() - started) * 1000, "tokens_or_estimate": max(1, (input_chars + output_chars) // 4),
-                "token_measurement": "character_estimate", "error": error}
-        if provider_usage is not None:
-            metadata.update(provider_usage)
-            counts=[provider_usage.get("prompt_tokens"),provider_usage.get("completion_tokens")]
-            if all(isinstance(count,int) and count>=0 for count in counts):
-                metadata["tokens_or_estimate"]=sum(counts)
-                metadata["token_measurement"]="provider"
-        return metadata
+        if provider == "ollama":
+            return self._ollama(messages, stream=False)
+        if provider == "openai":
+            return self._openai(messages, stream=False)
+        return self._mock(messages)
 
     async def stream(self, messages: list[AiMessage]):
         provider = self.settings.ai_provider.lower()
@@ -112,23 +85,16 @@ class AiClient:
         for chunk in split_text(text, 12):
             yield chunk
 
-    def _ollama(self, messages: list[AiMessage], stream: bool, timeout_seconds: float = 60, json_schema: dict | None = None) -> str:
+    def _ollama(self, messages: list[AiMessage], stream: bool) -> str:
         payload = {
             "model": self.settings.ollama_model,
             "messages": [m.model_dump() for m in messages],
             "stream": stream,
             "options": {"temperature": self.settings.ai_temperature, "num_predict": self.settings.ai_max_tokens},
         }
-        if json_schema is not None:
-            payload["format"] = json_schema
-        response = httpx.post(f"{self.settings.ollama_base_url}/api/chat", json=payload, timeout=timeout_seconds)
+        response = httpx.post(f"{self.settings.ollama_base_url}/api/chat", json=payload, timeout=60)
         response.raise_for_status()
-        data=response.json()
-        self._last_provider_usage={key:value for key,value in {
-            "prompt_tokens":data.get("prompt_eval_count"),"completion_tokens":data.get("eval_count"),
-            "load_duration_ms":data.get("load_duration",0)/1_000_000,
-            "done_reason":data.get("done_reason")}.items() if value is not None}
-        return data["message"]["content"]
+        return response.json()["message"]["content"]
 
     async def _ollama_stream(self, messages: list[AiMessage]):
         payload = {
@@ -148,7 +114,7 @@ class AiClient:
                     if token:
                         yield token
 
-    def _openai(self, messages: list[AiMessage], stream: bool, timeout_seconds: float = 60) -> str:
+    def _openai(self, messages: list[AiMessage], stream: bool) -> str:
         headers = {"Authorization": f"Bearer {self.settings.openai_api_key}"}
         payload = {
             "model": self.settings.openai_model,
@@ -157,7 +123,7 @@ class AiClient:
             "max_tokens": self.settings.ai_max_tokens,
             "stream": stream,
         }
-        response = httpx.post(f"{self.settings.openai_base_url}/chat/completions", headers=headers, json=payload, timeout=timeout_seconds)
+        response = httpx.post(f"{self.settings.openai_base_url}/chat/completions", headers=headers, json=payload, timeout=60)
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
 
@@ -187,9 +153,6 @@ class AiClient:
     def _mock(self, messages: list[AiMessage]) -> str:
         last = next((m.content for m in reversed(messages) if m.role == "user"), "")
         system = " ".join(m.content for m in messages if m.role == "system")
-        if "HARBORRELAY_REFERRAL_ACTION_V1" in system:
-            from app.agents.referral import fallback_action
-            return fallback_action(json.loads(last)).model_dump_json()
         if "严格 JSON" in system:
             if has_high_risk_signal(last):
                 return '{"emotion":"HIGH_RISK","emotionScore":4.0,"risk":"HIGH","confidence":0.95,"summary":"检测到明确高风险表达"}'
@@ -226,8 +189,8 @@ CONSULT_WORDS = ["焦虑", "抑郁", "压力", "失眠", "难过", "崩溃", "�
 
 
 def has_high_risk_signal(text: str) -> bool:
-    normalized = re.sub(r"[\s\u200b-\u200d\ufeff]+", "", unicodedata.normalize("NFKC",text).casefold())
-    return any(re.sub(r"\s+","",word) in normalized for word in HIGH_RISK_WORDS)
+    normalized = text.lower()
+    return any(word in normalized for word in HIGH_RISK_WORDS)
 
 
 def has_consult_signal(text: str) -> bool:

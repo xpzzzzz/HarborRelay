@@ -1,9 +1,0 @@
-Redis memory initially unavailable; later calls may reconnect: Timeout reading from socket
-Redis memory append unavailable: Timeout reading from socket
-Number of requested results 16 is greater than number of elements in index 3, updating n_results = 3
-Chroma vector + BM25 hybrid + local reranker retrieve failed; falling back to local BM25 + hybrid_score reranker: ollama embedding request failed: HTTPStatusError: Server error '503 Service Unavailable' for url 'http://127.0.0.1:41427/api/embed'
-For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503
-Chroma vector + BM25 hybrid + local reranker retrieve failed; falling back to local BM25 + hybrid_score reranker: ollama embedding request failed: ReadTimeout: timed out
-Number of requested results 16 is greater than number of elements in index 3, updating n_results = 3
-Number of requested results 16 is greater than number of elements in index 3, updating n_results = 3
-Redis memory initially unavailable; later calls may reconnect: Timeout reading from socket
