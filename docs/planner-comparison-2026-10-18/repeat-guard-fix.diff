@@ -1,0 +1,41 @@
+--- a/app/agents/referral.py
++++ b/app/agents/referral.py
+@@ -593,6 +593,17 @@
+                 raise PermissionError("Summary needs observed available resources")
+         return arguments.model_dump()
+ 
++    @staticmethod
++    def _call_signature(action):
++        schema = TOOL_SCHEMAS.get(action.tool)
++        if schema is None:
++            return None
++        try:
++            arguments = schema.model_validate(action.arguments).model_dump()
++        except ValidationError:
++            return None
++        return action.tool, json.dumps(arguments, sort_keys=True)
++
+     def tool_call(self, state):
+         action = state["action"]
+         if self._risk(state):
+@@ -606,14 +617,14 @@
+         started = perf_counter()
+         try:
+             args = self._validate_call(state)
+-            signature = (action.tool, json.dumps(args, sort_keys=True))
+-            previous = [
+-                (a.tool, json.dumps(a.arguments, sort_keys=True))
+-                for a in state["decisions"][:-1]
+-            ]
++            signature = self._call_signature(action)
++            previous = [self._call_signature(a) for a in state["decisions"][:-1]]
+             repeats = previous.count(signature)
+             last_timeout = bool(
+-                state["observations"] and state["observations"][-1].status == "timeout"
++                state["observations"]
++                and state["observations"][-1].status == "timeout"
++                and previous
++                and previous[-1] == signature
+             )
+             if repeats and not (repeats == 1 and last_timeout):
+                 observation = ToolObservation(tool=action.tool, status="repeat")

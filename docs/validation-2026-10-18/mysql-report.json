@@ -1,0 +1,89 @@
+{
+  "created_at": "2026-10-18T12:18:33.465651+00:00",
+  "run_id": "7fc75080f69e",
+  "isolation": "new owned local Docker container; tmpfs data; no existing DB/volume access",
+  "smtp_mode": "log",
+  "passed": true,
+  "cleanup_succeeded": true,
+  "checks": [
+    {
+      "id": "report_outbox_atomic_rollback",
+      "passed": true,
+      "details": {
+        "report_and_jobs_rolled_back": true
+      },
+      "elapsed_ms": 35.44559999136254
+    },
+    {
+      "id": "concurrent_same_report_enqueue",
+      "passed": true,
+      "details": {
+        "threads": 8,
+        "rounds": 3,
+        "enqueue_requests": 24,
+        "unique_jobs": 3
+      },
+      "elapsed_ms": 246.1198999953922
+    },
+    {
+      "id": "concurrent_conditional_claim",
+      "passed": true,
+      "details": {
+        "dispatchers": 3,
+        "submissions": 3,
+        "duplicate_claims": 0
+      },
+      "elapsed_ms": 45.17660001874901
+    },
+    {
+      "id": "governed_jobs_and_idempotent_side_effects",
+      "passed": true,
+      "details": {
+        "successful_jobs": 3,
+        "successful_audits": 3,
+        "alert_mode": "log"
+      },
+      "elapsed_ms": 299.4311999937054
+    },
+    {
+      "id": "process_exit_and_stale_job_recovery",
+      "passed": true,
+      "details": {
+        "child_exit_code": 73,
+        "committed_outbox_survived": true,
+        "stale_job_recovered": true
+      },
+      "elapsed_ms": 3940.7984999998007
+    },
+    {
+      "id": "excel_process_exit_before_db_commit",
+      "passed": true,
+      "details": {
+        "child_exit_code": 74,
+        "file_written_before_db_commit": true,
+        "rows_for_report_after_retry": 1
+      },
+      "elapsed_ms": 3848.176700004842
+    },
+    {
+      "id": "queue_policy_refusal_on_real_mysql",
+      "passed": true,
+      "details": {
+        "unauthorized_alerts": 0,
+        "refusal_audited": true
+      },
+      "elapsed_ms": 82.3884999845177
+    },
+    {
+      "id": "dead_dependency_converges",
+      "passed": true,
+      "details": {
+        "dependent_job_dead_lettered": true
+      },
+      "elapsed_ms": 106.71439999714494
+    }
+  ],
+  "server_version": "8.0.46",
+  "transaction_isolation": "REPEATABLE-READ",
+  "image_id": "sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b"
+}

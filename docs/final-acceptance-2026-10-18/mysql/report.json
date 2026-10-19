@@ -1,0 +1,100 @@
+{
+  "created_at": "2026-10-18T14:30:46.720542+00:00",
+  "run_id": "9527cfc9ebf1",
+  "isolation": "new owned local Docker container; tmpfs data; no existing DB/volume access",
+  "smtp_mode": "log",
+  "passed": true,
+  "cleanup_succeeded": true,
+  "checks": [
+    {
+      "id": "report_outbox_atomic_rollback",
+      "passed": true,
+      "details": {
+        "report_and_jobs_rolled_back": true
+      },
+      "elapsed_ms": 37.534400005824864
+    },
+    {
+      "id": "concurrent_same_report_enqueue",
+      "passed": true,
+      "details": {
+        "threads": 8,
+        "rounds": 3,
+        "enqueue_requests": 24,
+        "unique_jobs": 3
+      },
+      "elapsed_ms": 262.69020000472665
+    },
+    {
+      "id": "concurrent_conditional_claim",
+      "passed": true,
+      "details": {
+        "dispatchers": 3,
+        "submissions": 3,
+        "duplicate_claims": 0
+      },
+      "elapsed_ms": 42.428000015206635
+    },
+    {
+      "id": "governed_jobs_and_idempotent_side_effects",
+      "passed": true,
+      "details": {
+        "successful_jobs": 3,
+        "successful_audits": 3,
+        "alert_mode": "log"
+      },
+      "elapsed_ms": 209.6527999965474
+    },
+    {
+      "id": "process_exit_and_stale_job_recovery",
+      "passed": true,
+      "details": {
+        "child_exit_code": 73,
+        "committed_outbox_survived": true,
+        "stale_job_recovered": true
+      },
+      "elapsed_ms": 3725.5446000490338
+    },
+    {
+      "id": "excel_process_exit_before_db_commit",
+      "passed": true,
+      "details": {
+        "child_exit_code": 74,
+        "file_written_before_db_commit": true,
+        "rows_for_report_after_retry": 1
+      },
+      "elapsed_ms": 3670.7078000181355
+    },
+    {
+      "id": "queue_policy_refusal_on_real_mysql",
+      "passed": true,
+      "details": {
+        "unauthorized_alerts": 0,
+        "refusal_audited": true
+      },
+      "elapsed_ms": 48.18900005193427
+    },
+    {
+      "id": "dead_dependency_converges",
+      "passed": true,
+      "details": {
+        "dependent_job_dead_lettered": true
+      },
+      "elapsed_ms": 63.02149995462969
+    },
+    {
+      "id": "committed_message_window_handles_reverse_commit_order",
+      "passed": true,
+      "details": {
+        "two_transactions_reverse_commit_order": true,
+        "late_lower_id_detected": true,
+        "bounded_complete_window_validated": true,
+        "cache_adapter": "in_memory; real Redis in infrastructure probe"
+      },
+      "elapsed_ms": 60.80749997636303
+    }
+  ],
+  "server_version": "8.0.46",
+  "transaction_isolation": "REPEATABLE-READ",
+  "image_id": "sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b"
+}

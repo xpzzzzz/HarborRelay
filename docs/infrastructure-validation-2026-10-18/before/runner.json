@@ -1,0 +1,138 @@
+{
+  "created_at": "2026-10-18T13:47:04.528871+00:00",
+  "run_id": "bc7230cfe092",
+  "passed": false,
+  "cleanup_succeeded": true,
+  "evidence_directory": "D:\\Python-Project\\HarborRelay\\mindbridge-py\\target\\infrastructure-baseline\\bc7230cfe092",
+  "scope": "New owned containers; scratch tmpfs; readonly source/skills; no host DB/data mounts",
+  "app_image": "mindbridge-py-app:latest",
+  "redis_image": "redis:7.2-alpine",
+  "app_image_id": "sha256:71313c1db169cef225b99bfc2aa7b97d8adb3fbcc35a22158c190ef2b4c3257a",
+  "redis_image_id": "sha256:dfa18828cbc07b3ae6a95ec7343f6c214fdee2d836197b4be8e9904420762cd8",
+  "probe_exit_code": 1,
+  "checks": [
+    {
+      "id": "redis_roundtrip_bounds_ttl_privacy",
+      "passed": true,
+      "details": {
+        "bounded_messages": 4,
+        "parallel_appends": 32,
+        "masked": true,
+        "replace_and_clear": true
+      },
+      "elapsed_ms": 47.25252400021418
+    },
+    {
+      "id": "redis_append_transaction",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "['RPUSH', 'LTRIM', 'EXPIRE', 'CLIENT', 'CLIENT', 'PING']",
+      "elapsed_ms": 2.876185999411973
+    },
+    {
+      "id": "redis_malformed_cache_is_untrusted",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "",
+      "elapsed_ms": 1.2327049998930306
+    },
+    {
+      "id": "redis_startup_failure_reconnects",
+      "passed": false,
+      "error": "IndexError",
+      "detail": "list index out of range",
+      "elapsed_ms": 451.7472910001743
+    },
+    {
+      "id": "redis_real_expiration",
+      "passed": true,
+      "details": {
+        "expired": true
+      },
+      "elapsed_ms": 1203.7520240000958
+    },
+    {
+      "id": "redis_miss_uses_authoritative_db_history",
+      "passed": true,
+      "details": {
+        "authoritative_sqlite_history_refilled_cache": true,
+        "source_label": "mysql_seeded"
+      },
+      "elapsed_ms": 6.667700999969384
+    },
+    {
+      "id": "chroma_live_ollama_index_and_query",
+      "passed": true,
+      "details": {
+        "indexed": 3,
+        "embedding_dimension": 768,
+        "exact_text_vector_and_hybrid_hit": true
+      },
+      "elapsed_ms": 6098.310764999951
+    },
+    {
+      "id": "chroma_provider_outage_and_recovery",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "VectorStoreUnavailable: ollama embedding request failed: HTTPStatusError: Server error '503 Service Unavailable' for url 'http://127.0.0.1:43185/api/embed'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",
+      "elapsed_ms": 108.679139000742
+    },
+    {
+      "id": "chroma_required_disabled_fails_closed",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "Required/disabled vector configuration silently fell back",
+      "elapsed_ms": 1.9377499993424863
+    },
+    {
+      "id": "chroma_rejects_non_finite_vectors",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "Non-finite embedding accepted",
+      "elapsed_ms": 0.1437680002709385
+    },
+    {
+      "id": "chroma_reopen_snapshot_and_process_exit",
+      "passed": true,
+      "details": {
+        "fresh_process_reopen": true,
+        "quiescent_snapshot_restore": true,
+        "app_child_exit_code": 75,
+        "crash_write_reopened": true,
+        "snapshot_retention": 2
+      },
+      "elapsed_ms": 7947.109292999812
+    },
+    {
+      "id": "chroma_model_identity_and_rebuild",
+      "passed": true,
+      "details": {
+        "model_isolated": true,
+        "stale_vector_removed": true,
+        "source_reingest_idempotent": true
+      },
+      "elapsed_ms": 275.20376299980853
+    },
+    {
+      "id": "high_risk_outbox_survives_provider_outage",
+      "passed": true,
+      "details": {
+        "high_risk_skipped_vector_provider": true,
+        "outbox_jobs_before_meta": 3,
+        "mock_ai_only": true
+      },
+      "elapsed_ms": 380.3778980000061
+    }
+  ],
+  "app_source_sha256": "b5a4b932cc94a8b420d06ca4534d1a3ea38abdab4a4ab4358299f4a259bb2eec",
+  "cleanup": [
+    {
+      "id": "fbb2cde3b252b489414d8047ccf8b0a5fa59db711bbd8ded95d9611818af395b",
+      "removed": true
+    },
+    {
+      "id": "34abe443eaf7dac9f25f7cac9a8dc84dc78f419b174e4e162e70d6b85bd5b682",
+      "removed": true
+    }
+  ]
+}

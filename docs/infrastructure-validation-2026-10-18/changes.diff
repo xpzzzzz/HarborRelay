@@ -1,0 +1,188 @@
+--- a/app/services/memory.py
++++ b/app/services/memory.py
+@@ -5,6 +5,7 @@
+ import logging
+ from datetime import datetime
+ from importlib import import_module
++from time import monotonic
+ from typing import Protocol
+ 
+ from app.core.config import Settings
+@@ -26,14 +27,16 @@
+     def __init__(self, settings: Settings):
+         self.settings = settings
+         self.privacy = PrivacySanitizer()
++        self._retry_after = 0.0
+         self.client = self._connect()
+ 
+     def load_recent(self, session_public_id: str) -> list[AiMessage]:
+-        if self.client is None:
++        if not self._available():
+             return []
+         try:
+             return self._read(session_public_id, self.settings.redis_memory_max_messages)
+         except Exception as exc:
++            self._defer_retry()
+             logger.warning("Redis memory read unavailable: %s", exc)
+             return []
+ 
+@@ -41,30 +44,34 @@
+         return [self._message_from_row(row) for row in rows]
+ 
+     def append(self, session_public_id: str, role: str, content: str) -> None:
+-        if self.client is None:
++        if not self._available():
+             return
+         key = self._key(session_public_id)
+         payload = self._serialize(role, content)
+         try:
+-            self.client.rpush(key, payload)
+-            self.client.ltrim(key, -self.settings.redis_memory_max_messages, -1)
+-            self.client.expire(key, self.settings.redis_memory_ttl_seconds)
+-        except Exception as exc:
++            with self.client.pipeline(transaction=True) as pipe:
++                pipe.rpush(key, payload)
++                pipe.ltrim(key, -self.settings.redis_memory_max_messages, -1)
++                pipe.expire(key, self.settings.redis_memory_ttl_seconds)
++                pipe.execute()
++        except Exception as exc:
++            self._defer_retry()
+             logger.warning("Redis memory append unavailable: %s", exc)
+ 
+     def replace(self, session_public_id: str, messages: list[AiMessage]) -> None:
+-        if self.client is None:
++        if not self._available():
+             return
+         key = self._key(session_public_id)
+-        pipe = self.client.pipeline()
+-        pipe.delete(key)
+-        if messages:
+-            pipe.rpush(key, *[self._serialize(message.role, message.content) for message in messages])
+-            pipe.ltrim(key, -self.settings.redis_memory_max_messages, -1)
+-            pipe.expire(key, self.settings.redis_memory_ttl_seconds)
+-        try:
+-            pipe.execute()
+-        except Exception as exc:
++        try:
++            with self.client.pipeline(transaction=True) as pipe:
++                pipe.delete(key)
++                if messages:
++                    pipe.rpush(key, *[self._serialize(message.role, message.content) for message in messages])
++                    pipe.ltrim(key, -self.settings.redis_memory_max_messages, -1)
++                    pipe.expire(key, self.settings.redis_memory_ttl_seconds)
++                pipe.execute()
++        except Exception as exc:
++            self._defer_retry()
+             logger.warning("Redis memory replace unavailable: %s", exc)
+ 
+     def _read(self, session_public_id: str, limit: int) -> list[AiMessage]:
+@@ -75,9 +82,15 @@
+                 data = json.loads(raw)
+             except json.JSONDecodeError:
+                 continue
+-            role = str(data.get("role", "")).lower()
+-            content = str(data.get("content", ""))
+-            if role and content:
++            if not isinstance(data, dict):
++                continue
++            role = data.get("role")
++            content = data.get("content")
++            if not isinstance(role, str) or not isinstance(content, str):
++                continue
++            role = role.lower()
++            # Redis holds conversation data, never privileged prompt instructions.
++            if role in {"user", "assistant"} and content:
+                 messages.append(AiMessage(role=role, content=self.privacy.sanitize(content)))
+         return messages
+ 
+@@ -95,9 +108,16 @@
+         try:
+             client.ping()
+         except Exception as exc:
+-            logger.warning("Redis memory disabled: %s", exc)
+-            return None
++            self._defer_retry()
++            logger.warning("Redis memory initially unavailable; later calls may reconnect: %s", exc)
+         return client
++
++    def _available(self) -> bool:
++        return self.client is not None and monotonic() >= getattr(self, "_retry_after", 0)
++
++    def _defer_retry(self) -> None:
++        # Keep a failed cache from imposing repeated socket waits in the same turn.
++        self._retry_after = monotonic() + self.settings.redis_socket_timeout_seconds
+ 
+     def _message_from_row(self, row: ChatMessage) -> AiMessage:
+         return AiMessage(role=row.role.lower(), content=self.privacy.sanitize(row.content))
+--- a/app/services/knowledge.py
++++ b/app/services/knowledge.py
+@@ -60,9 +60,9 @@
+         vector_error = getattr(self.vector_store, "error", "")
+         vector_available = self.vector_store.available
+         if self.vector_store.can_embed:
+-            if not self.vector_store.check_provider_available():
+-                vector_available = False
+-                vector_error = self.vector_store.error
++            provider_available = self.vector_store.check_provider_available()
++            vector_available = provider_available and self.vector_store.available
++            vector_error = self.vector_store.error
+             try:
+                 vector_chunks = self.vector_store.count()
+             except Exception as exc:
+@@ -496,7 +496,7 @@
+         "dimension": len(embedding),
+         "vector": [float(value) for value in embedding],
+     }
+-    return json.dumps(payload, separators=(",", ":"))
++    return json.dumps(payload, separators=(",", ":"), allow_nan=False)
+ 
+ 
+ def parse_embedding(
+@@ -532,6 +532,8 @@
+         return None
+     if not all(isinstance(item, (int, float)) and not isinstance(item, bool) for item in data):
+         return None
++    if not all(math.isfinite(item) for item in data):
++        return None
+     return [float(item) for item in data]
+ 
+ def tokenize(text: str) -> list[str]:
+--- a/app/services/vector_store.py
++++ b/app/services/vector_store.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import hashlib
++import math
+ import re
+ import shutil
+ from dataclasses import dataclass
+@@ -48,7 +49,7 @@
+         self.collection = None
+ 
+         if not settings.knowledge_vector_enabled:
+-            self.error = "Chroma vector retrieval is disabled."
++            self._set_unavailable("Chroma vector retrieval is disabled.")
+             return
+         if self.embedding_provider not in self.SUPPORTED_EMBEDDING_PROVIDERS:
+             self._set_unavailable(
+@@ -279,6 +280,8 @@
+                 raise VectorStoreUnavailable("Embedding response contained an empty or invalid vector.")
+             if not all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in embedding):
+                 raise VectorStoreUnavailable("Embedding response contained a non-numeric value.")
++            if not all(math.isfinite(value) for value in embedding):
++                raise VectorStoreUnavailable("Embedding response contained a non-finite value.")
+             resolved.append([float(value) for value in embedding])
+         dimensions = {len(embedding) for embedding in resolved}
+         if len(dimensions) != 1:
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -8,6 +8,8 @@
+ langchain-core==0.3.59
+ langgraph==0.4.3
+ chromadb==0.5.23
++# Chroma 0.5.x uses the legacy positional capture API; 6.x changed that API.
++posthog==5.4.0
+ python-multipart==0.0.20
+ httpx==0.28.1
+ openpyxl==3.1.5

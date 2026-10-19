@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
@@ -13,11 +14,12 @@ from app.models.entities import ChatMessage, ChatSession, PsychologicalReport, U
 from app.schemas.dtos import AiMessage, ChatRequest
 from app.services.assessment import PsychologyAssessment
 from app.services.knowledge import SearchResult
-from app.services.mcp_client import MindBridgeMcpToolClient
 from app.services.memory import RedisShortTermMemoryStore
 from app.services.privacy import PrivacySanitizer
 from app.services.tool_queue import ToolQueueService
 from app.services.trace import AgentTraceService
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,6 +46,7 @@ class AgentHarnessOutcome:
     report_id: int | None
     tool_plan: AgentToolPlan
     trace_id: int | None
+    referral_result: object | None = None
 
 
 class MindBridgeAgentHarness:
@@ -58,16 +61,23 @@ class MindBridgeAgentHarness:
         self.db = db
         self.settings = settings
         self.privacy = PrivacySanitizer()
-        self.memory = RedisShortTermMemoryStore(settings)
+        self._memory = None
+
+    @property
+    def memory(self):
+        if self._memory is None:
+            self._memory = RedisShortTermMemoryStore(self.settings)
+        return self._memory
 
     def run(self, user: UserAccount, request: ChatRequest) -> AgentHarnessOutcome:
         original_input = request.message.strip()
         model_input = self.privacy.sanitize(original_input)
         session = self._resolve_session(user, request.sessionId, original_input)
         agent_run = create_agent_runtime(self.db, self.settings).run(user, session, original_input, model_input)
-        self.save_message(user, session, MessageRole.USER, original_input)
+        user_message = self.save_message(user, session, MessageRole.USER, original_input, sync_memory=False)
 
         report = self._create_report(user, session, original_input, agent_run)
+        self._append_memory(session.public_id, MessageRole.USER.value, original_input, user_message.id)
         risk_level = report.risk_level if report is not None else None
         trace = AgentTraceService(self.db).save_run(
             user=user,
@@ -92,6 +102,7 @@ class MindBridgeAgentHarness:
             report_id=report.id if report is not None else None,
             tool_plan=tool_plan,
             trace_id=trace.id,
+            referral_result=agent_run.referral_result,
         )
 
     def save_assistant_message(self, user: UserAccount, session: ChatSession, content: str) -> None:
@@ -100,17 +111,24 @@ class MindBridgeAgentHarness:
     async def dispatch_tools(self, tool_plan: AgentToolPlan) -> list[str]:
         if tool_plan.report_id is None:
             return []
-        if self.settings.tool_queue_enabled:
-            ToolQueueService(self.db, self.settings).enqueue_report(tool_plan.report_id, tool_plan.risk_level)
-            return ["queued"]
-        return await MindBridgeMcpToolClient(self.settings).handle_report(tool_plan.report_id, tool_plan.risk_level)
+        ToolQueueService(self.db, self.settings).enqueue_report(tool_plan.report_id, tool_plan.risk_level)
+        return ["queued"]
 
-    def save_message(self, user: UserAccount, session: ChatSession, role: MessageRole, content: str) -> None:
-        self.db.add(ChatMessage(user_id=user.id, session_id=session.id, role=role.value, content=content))
+    def save_message(self, user: UserAccount, session: ChatSession, role: MessageRole, content: str, *, sync_memory: bool = True) -> ChatMessage:
+        message = ChatMessage(user_id=user.id, session_id=session.id, role=role.value, content=content)
+        self.db.add(message)
         session.touch()
         self.db.add(session)
         self.db.commit()
-        self.memory.append(session.public_id, role.value, content)
+        if sync_memory:
+            self._append_memory(session.public_id, role.value, content, message.id)
+        return message
+
+    def _append_memory(self, public_id, role, content, message_id):
+        try:
+            self.memory.append(public_id, role, content, message_id=message_id)
+        except Exception as exc:
+            logger.warning("Optional memory cache unavailable: %s",type(exc).__name__)
 
     def _resolve_session(self, user: UserAccount, public_id: str | None, text: str) -> ChatSession:
         if public_id:
@@ -139,6 +157,9 @@ class MindBridgeAgentHarness:
             summary=agent_run.assessment.summary,
         )
         self.db.add(report)
+        self.db.flush()
+        # Existing ToolJob is the durable outbox. Both become visible in one commit.
+        ToolQueueService(self.db, self.settings).enqueue_report(report.id, report.risk_level, commit=False)
         self.db.commit()
         self.db.refresh(report)
         return report

@@ -1,0 +1,80 @@
+test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) ... 
+  test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) (value=nan) ... FAIL
+  test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) (value=inf) ... FAIL
+  test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) (value=-inf) ... FAIL
+test_probe_refuses_host_scope_or_unowned_container (test_infrastructure_contracts.InfrastructureContractsTests.test_probe_refuses_host_scope_or_unowned_container) ... ok
+test_required_vectors_cannot_be_silently_disabled (test_infrastructure_contracts.InfrastructureContractsTests.test_required_vectors_cannot_be_silently_disabled) ... FAIL
+test_startup_ping_failure_does_not_permanently_disable_cache (test_infrastructure_contracts.InfrastructureContractsTests.test_startup_ping_failure_does_not_permanently_disable_cache) ... Redis memory disabled: synthetic startup outage
+ERROR
+test_status_does_not_retain_error_after_provider_recovers (test_infrastructure_contracts.InfrastructureContractsTests.test_status_does_not_retain_error_after_provider_recovers) ... FAIL
+test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings (test_infrastructure_contracts.InfrastructureContractsTests.test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings) ... Redis memory read unavailable: 'list' object has no attribute 'get'
+FAIL
+
+======================================================================
+ERROR: test_startup_ping_failure_does_not_permanently_disable_cache (test_infrastructure_contracts.InfrastructureContractsTests.test_startup_ping_failure_does_not_permanently_disable_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 48, in test_startup_ping_failure_does_not_permanently_disable_cache
+    store.load_recent("synthetic")[0].content, "synthetic recovered"
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+FAIL: test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) (value=nan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 94, in test_non_finite_provider_and_cached_embeddings_are_rejected
+    with self.assertRaises(VectorStoreUnavailable):
+AssertionError: VectorStoreUnavailable not raised
+
+======================================================================
+FAIL: test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) (value=inf)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 94, in test_non_finite_provider_and_cached_embeddings_are_rejected
+    with self.assertRaises(VectorStoreUnavailable):
+AssertionError: VectorStoreUnavailable not raised
+
+======================================================================
+FAIL: test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) (value=-inf)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 94, in test_non_finite_provider_and_cached_embeddings_are_rejected
+    with self.assertRaises(VectorStoreUnavailable):
+AssertionError: VectorStoreUnavailable not raised
+
+======================================================================
+FAIL: test_required_vectors_cannot_be_silently_disabled (test_infrastructure_contracts.InfrastructureContractsTests.test_required_vectors_cannot_be_silently_disabled)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 80, in test_required_vectors_cannot_be_silently_disabled
+    with self.assertRaises(VectorStoreUnavailable):
+AssertionError: VectorStoreUnavailable not raised
+
+======================================================================
+FAIL: test_status_does_not_retain_error_after_provider_recovers (test_infrastructure_contracts.InfrastructureContractsTests.test_status_does_not_retain_error_after_provider_recovers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 76, in test_status_does_not_retain_error_after_provider_recovers
+    self.assertTrue(result["vectorAvailable"])
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings (test_infrastructure_contracts.InfrastructureContractsTests.test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_infrastructure_contracts.py", line 34, in test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings
+    self.assertEqual(
+AssertionError: Lists differ: [] != [('user', 'synthetic [已脱敏]')]
+
+Second list contains 1 additional elements.
+First extra element 0:
+('user', 'synthetic [已脱敏]')
+
+- []
++ [('user', 'synthetic [已脱敏]')]
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.025s
+
+FAILED (failures=6, errors=1)

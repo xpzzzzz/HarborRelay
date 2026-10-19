@@ -1,0 +1,3077 @@
+{
+  "created_at": "2026-10-18T12:33:29.239600+00:00",
+  "scope": "synthetic referral subgraph only",
+  "app_source_sha256": "b37379eb920d010fbc6d0a994f109a8be29edc2ab829f2dc417ded921db2b7d7",
+  "ollama_version": "0.40.5",
+  "model": {
+    "name": "mindbridge-qwen2.5-7b-ft:latest",
+    "model": "mindbridge-qwen2.5-7b-ft:latest",
+    "modified_at": "2026-07-06T13:47:53.4960319+08:00",
+    "size": 4683074949,
+    "digest": "6f5a0ea99a06070f1623185d302f3d9a0c350c1662557513c00281e1e8e7c88c",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "7.6B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 3584,
+      "runner": "ggml"
+    },
+    "capabilities": [
+      "tools",
+      "completion"
+    ]
+  },
+  "format": "schema",
+  "temperature": 0.35,
+  "max_output_tokens": 512,
+  "budget_seconds": 15.0,
+  "production_default_budget_seconds": 15,
+  "repetitions": 3,
+  "cases": [
+    {
+      "id": "available",
+      "repetition": 0,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 16015.044200001284,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "time_budget",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 3,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4687.926699989475,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "latency_ms": 0.17939999816007912,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4784.621200000402,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "latency_ms": 0.09630000567995012,
+            "error": null,
+            "tool_arguments": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon"
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "prepare_referral_summary",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3981.4920999924652,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "prepare_referral_summary",
+            "observation_status": "success",
+            "latency_ms": 0.17899999511428177,
+            "error": null,
+            "tool_arguments": {
+              "resource_ids": [
+                "demo-campus-center"
+              ]
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "error",
+            "planner_mode": "deterministic_fallback",
+            "latency_ms": 1557.012399978703,
+            "error": "ReadTimeout"
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "success",
+            "data": {
+              "resources": [
+                {
+                  "id": "demo-campus-center",
+                  "name": "示例校园心理中心（模拟）",
+                  "channel": "in_person",
+                  "private": true,
+                  "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                  "windows": [
+                    "friday_afternoon"
+                  ],
+                  "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                  "simulated": true
+                }
+              ],
+              "simulated": true,
+              "privacy_conflict": false
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.17939999816007912
+          },
+          {
+            "tool": "get_resource_availability",
+            "status": "success",
+            "data": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon",
+              "availability": "available",
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.09630000567995012
+          },
+          {
+            "tool": "prepare_referral_summary",
+            "status": "success",
+            "data": {
+              "draft": "模拟交接草稿：希望了解 示例校园心理中心（模拟）。仅供用户编辑，尚未提交或发送。",
+              "resource_ids": [
+                "demo-campus-center"
+              ],
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.17899999511428177
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action",
+          "model_schema_action",
+          "deterministic_fallback"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "52205e4c528a47989dd1bb27e5f81c21",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4686.905100010335,
+            "tokens_or_estimate": 389,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 353,
+            "completion_tokens": 36,
+            "load_duration_ms": 10.2177,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "52205e4c528a47989dd1bb27e5f81c21",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.17939999816007912
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "10e58ccad64100c4f2cd3be1a8f58edea4001fb2eb49d144c3715aca9ee2a7a8",
+          "output": "{\"arguments\":{\"resource_id\":\"demo-campus-center\",\"window\":\"friday_afternoon\"},\"kind\":\"tool\",\"tool\":\"get_resource_availability\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4783.045000018319,
+            "tokens_or_estimate": 695,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 664,
+            "completion_tokens": 31,
+            "load_duration_ms": 15.3211,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "52205e4c528a47989dd1bb27e5f81c21",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.17939999816007912
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "success",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "available",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.09630000567995012
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "748eac24cf5b869450456b877e3032cb2448658a096f48c827e2ad8298f456cb",
+          "output": "{\"arguments\":{\"resource_ids\":[\"demo-campus-center\"]},\"kind\":\"tool\",\"tool\":\"prepare_referral_summary\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3974.2181999899913,
+            "tokens_or_estimate": 938,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 913,
+            "completion_tokens": 25,
+            "load_duration_ms": 14.6564,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "52205e4c528a47989dd1bb27e5f81c21",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.17939999816007912
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "success",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "available",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.09630000567995012
+              },
+              {
+                "tool": "prepare_referral_summary",
+                "status": "success",
+                "data": {
+                  "draft": "模拟交接草稿：希望了解 示例校园心理中心（模拟）。仅供用户编辑，尚未提交或发送。",
+                  "resource_ids": [
+                    "demo-campus-center"
+                  ],
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.17899999511428177
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "prepare_referral_summary",
+                "arguments": {
+                  "resource_ids": [
+                    "demo-campus-center"
+                  ]
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": false,
+          "action_valid": false,
+          "decoder_schema_valid": false,
+          "error": "ReadTimeout",
+          "decoder_schema_sha256": "64779e8ebccf65373eae718644bbc7f7ddbd727573cb041e14270f6b20ecc29f",
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 1548.584199976176,
+            "tokens_or_estimate": 948,
+            "token_measurement": "character_estimate",
+            "error": "ReadTimeout"
+          }
+        }
+      ]
+    },
+    {
+      "id": "replan",
+      "repetition": 0,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 13479.437300004065,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "availability_unknown",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 2,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4633.650300005684,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "latency_ms": 0.13420000323094428,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4346.244699991075,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "get_resource_availability",
+            "observation_status": "empty",
+            "latency_ms": 0.12379998224787414,
+            "error": null,
+            "tool_arguments": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon"
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4435.91979998746,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "success",
+            "data": {
+              "resources": [
+                {
+                  "id": "demo-campus-center",
+                  "name": "示例校园心理中心（模拟）",
+                  "channel": "in_person",
+                  "private": true,
+                  "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                  "windows": [
+                    "friday_afternoon"
+                  ],
+                  "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                  "simulated": true
+                }
+              ],
+              "simulated": true,
+              "privacy_conflict": false
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.13420000323094428
+          },
+          {
+            "tool": "get_resource_availability",
+            "status": "empty",
+            "data": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon",
+              "availability": "unavailable",
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.12379998224787414
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "e6a8aa9953574e8eaafae02db0923197",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4631.909799994901,
+            "tokens_or_estimate": 386,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 350,
+            "completion_tokens": 36,
+            "load_duration_ms": 30.9783,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "e6a8aa9953574e8eaafae02db0923197",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.13420000323094428
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "10e58ccad64100c4f2cd3be1a8f58edea4001fb2eb49d144c3715aca9ee2a7a8",
+          "output": "{\"arguments\":{\"resource_id\":\"demo-campus-center\",\"window\":\"friday_afternoon\"},\"kind\":\"tool\",\"tool\":\"get_resource_availability\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4344.515300006606,
+            "tokens_or_estimate": 692,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 661,
+            "completion_tokens": 31,
+            "load_duration_ms": 14.1746,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "e6a8aa9953574e8eaafae02db0923197",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.13420000323094428
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "empty",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "unavailable",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.12379998224787414
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "64aa6c5516c17757238c7925a885897065e83b96961a73217909191af489590e",
+          "output": "{\"kind\":\"safe_exit\",\"stop_reason\":\"availability_unknown\",\"reason\":\"无法在周五下午找到可用的示例校园心理中心（模拟）\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4429.763299995102,
+            "tokens_or_estimate": 952,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 921,
+            "completion_tokens": 31,
+            "load_duration_ms": 17.6742,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "id": "missing_time",
+      "repetition": 0,
+      "expected": "needs_time",
+      "success": true,
+      "elapsed_ms": 25.301799993030727,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "needs_time",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 0,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "constraint_guard",
+            "latency_ms": 0,
+            "error": null
+          }
+        ],
+        "observations": [],
+        "planner_modes": [
+          "constraint_guard"
+        ]
+      },
+      "attempts": []
+    },
+    {
+      "id": "timeout_once",
+      "repetition": 0,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 7673.554200009676,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": true,
+      "result": {
+        "stop_reason": "tool_timeout",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 1,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4530.700800009072,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "timeout",
+            "latency_ms": 0.12579999747686088,
+            "error": "tool_timeout",
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": []
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3118.5879000113346,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "timeout",
+            "data": {},
+            "source_refs": [],
+            "error": "tool_timeout",
+            "latency_ms": 0.12579999747686088
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "455e1b4912dc463babefbf4bf053a6d5",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4529.885700001614,
+            "tokens_or_estimate": 385,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 349,
+            "completion_tokens": 36,
+            "load_duration_ms": 15.0568,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "455e1b4912dc463babefbf4bf053a6d5",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "timeout",
+                "data": {},
+                "source_refs": [],
+                "error": "tool_timeout",
+                "latency_ms": 0.12579999747686088
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "955916a050e26277f28317ca5c1124a1f507b4f5dd1b033a70cc3e4f0be1cbdb",
+          "output": "{\"kind\":\"safe_exit\",\"stop_reason\":\"tool_timeout\",\"reason\":\"未能在规定时间内找到合适的候选人\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3117.601799982367,
+            "tokens_or_estimate": 595,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 572,
+            "completion_tokens": 23,
+            "load_duration_ms": 14.5781,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "id": "available",
+      "repetition": 1,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 12877.337400015676,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "repeated_results",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 2,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4760.824900004081,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "latency_ms": 0.14509999891743064,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4276.516299985815,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "latency_ms": 0.09460002183914185,
+            "error": null,
+            "tool_arguments": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon"
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3804.327799996827,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "repeat",
+            "latency_ms": 0.0982999918051064,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": []
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "success",
+            "data": {
+              "resources": [
+                {
+                  "id": "demo-campus-center",
+                  "name": "示例校园心理中心（模拟）",
+                  "channel": "in_person",
+                  "private": true,
+                  "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                  "windows": [
+                    "friday_afternoon"
+                  ],
+                  "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                  "simulated": true
+                }
+              ],
+              "simulated": true,
+              "privacy_conflict": false
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.14509999891743064
+          },
+          {
+            "tool": "get_resource_availability",
+            "status": "success",
+            "data": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon",
+              "availability": "available",
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.09460002183914185
+          },
+          {
+            "tool": "search_support_resources",
+            "status": "repeat",
+            "data": {},
+            "source_refs": [],
+            "error": null,
+            "latency_ms": 0.0982999918051064
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "eae67367405c4089894dbf23d01fc3e9",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4759.570599999279,
+            "tokens_or_estimate": 388,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 352,
+            "completion_tokens": 36,
+            "load_duration_ms": 15.1052,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "eae67367405c4089894dbf23d01fc3e9",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.14509999891743064
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "10e58ccad64100c4f2cd3be1a8f58edea4001fb2eb49d144c3715aca9ee2a7a8",
+          "output": "{\"arguments\":{\"resource_id\":\"demo-campus-center\",\"window\":\"friday_afternoon\"},\"kind\":\"tool\",\"tool\":\"get_resource_availability\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4274.65099998517,
+            "tokens_or_estimate": 694,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 663,
+            "completion_tokens": 31,
+            "load_duration_ms": 17.407,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "eae67367405c4089894dbf23d01fc3e9",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.14509999891743064
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "success",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "available",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.09460002183914185
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "748eac24cf5b869450456b877e3032cb2448658a096f48c827e2ad8298f456cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3800.5488000053447,
+            "tokens_or_estimate": 937,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 912,
+            "completion_tokens": 25,
+            "load_duration_ms": 15.2265,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "id": "replan",
+      "repetition": 1,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 13513.273000018671,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "availability_unknown",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 2,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4708.9776000066195,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "latency_ms": 0.21930001094006002,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4814.418199995998,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "get_resource_availability",
+            "observation_status": "empty",
+            "latency_ms": 0.11879997327923775,
+            "error": null,
+            "tool_arguments": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon"
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3945.912800001679,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "success",
+            "data": {
+              "resources": [
+                {
+                  "id": "demo-campus-center",
+                  "name": "示例校园心理中心（模拟）",
+                  "channel": "in_person",
+                  "private": true,
+                  "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                  "windows": [
+                    "friday_afternoon"
+                  ],
+                  "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                  "simulated": true
+                }
+              ],
+              "simulated": true,
+              "privacy_conflict": false
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.21930001094006002
+          },
+          {
+            "tool": "get_resource_availability",
+            "status": "empty",
+            "data": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon",
+              "availability": "unavailable",
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.11879997327923775
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "82159688663141a0ab4dcc6f429e4ff0",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4708.013499999652,
+            "tokens_or_estimate": 387,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 351,
+            "completion_tokens": 36,
+            "load_duration_ms": 15.0423,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "82159688663141a0ab4dcc6f429e4ff0",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.21930001094006002
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "10e58ccad64100c4f2cd3be1a8f58edea4001fb2eb49d144c3715aca9ee2a7a8",
+          "output": "{\"arguments\":{\"resource_id\":\"demo-campus-center\",\"window\":\"friday_afternoon\"},\"kind\":\"tool\",\"tool\":\"get_resource_availability\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4812.256399978651,
+            "tokens_or_estimate": 694,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 662,
+            "completion_tokens": 32,
+            "load_duration_ms": 17.9486,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "82159688663141a0ab4dcc6f429e4ff0",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.21930001094006002
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "empty",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "unavailable",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.11879997327923775
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "64aa6c5516c17757238c7925a885897065e83b96961a73217909191af489590e",
+          "output": "{\"kind\":\"safe_exit\",\"stop_reason\":\"availability_unknown\",\"reason\":\"无法在周五下午找到可用的示例校园心理中心\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3942.1547999954782,
+            "tokens_or_estimate": 950,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 922,
+            "completion_tokens": 28,
+            "load_duration_ms": 17.3575,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "id": "missing_time",
+      "repetition": 1,
+      "expected": "needs_time",
+      "success": true,
+      "elapsed_ms": 29.372199991485104,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "needs_time",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 0,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "constraint_guard",
+            "latency_ms": 0,
+            "error": null
+          }
+        ],
+        "observations": [],
+        "planner_modes": [
+          "constraint_guard"
+        ]
+      },
+      "attempts": []
+    },
+    {
+      "id": "timeout_once",
+      "repetition": 1,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 7564.179200009676,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": true,
+      "result": {
+        "stop_reason": "tool_timeout",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 1,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4365.155300009064,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "timeout",
+            "latency_ms": 0.06699998630210757,
+            "error": "tool_timeout",
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": []
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3172.69629999646,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "timeout",
+            "data": {},
+            "source_refs": [],
+            "error": "tool_timeout",
+            "latency_ms": 0.06699998630210757
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "c1b4fa9c5bb345c98f53f06f53c54281",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4364.300999994157,
+            "tokens_or_estimate": 389,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 353,
+            "completion_tokens": 36,
+            "load_duration_ms": 17.2752,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "c1b4fa9c5bb345c98f53f06f53c54281",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "timeout",
+                "data": {},
+                "source_refs": [],
+                "error": "tool_timeout",
+                "latency_ms": 0.06699998630210757
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "955916a050e26277f28317ca5c1124a1f507b4f5dd1b033a70cc3e4f0be1cbdb",
+          "output": "{\"kind\":\"safe_exit\",\"stop_reason\":\"tool_timeout\",\"reason\":\"未能在规定时间内找到合适的候选人\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3171.645099995658,
+            "tokens_or_estimate": 599,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 576,
+            "completion_tokens": 23,
+            "load_duration_ms": 12.7973,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "id": "available",
+      "repetition": 2,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 15058.59890001011,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "time_budget",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 3,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4179.592800006503,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "latency_ms": 0.11079999967478216,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4635.206500010099,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "latency_ms": 0.10989999282173812,
+            "error": null,
+            "tool_arguments": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon"
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "prepare_referral_summary",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3451.659899990773,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "prepare_referral_summary",
+            "observation_status": "success",
+            "latency_ms": 0.10299999848939478,
+            "error": null,
+            "tool_arguments": {
+              "resource_ids": [
+                "demo-campus-center"
+              ]
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "error",
+            "planner_mode": "deterministic_fallback",
+            "latency_ms": 2758.2773999893107,
+            "error": "ReadTimeout"
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "success",
+            "data": {
+              "resources": [
+                {
+                  "id": "demo-campus-center",
+                  "name": "示例校园心理中心（模拟）",
+                  "channel": "in_person",
+                  "private": true,
+                  "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                  "windows": [
+                    "friday_afternoon"
+                  ],
+                  "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                  "simulated": true
+                }
+              ],
+              "simulated": true,
+              "privacy_conflict": false
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.11079999967478216
+          },
+          {
+            "tool": "get_resource_availability",
+            "status": "success",
+            "data": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon",
+              "availability": "available",
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.10989999282173812
+          },
+          {
+            "tool": "prepare_referral_summary",
+            "status": "success",
+            "data": {
+              "draft": "模拟交接草稿：希望了解 示例校园心理中心（模拟）。仅供用户编辑，尚未提交或发送。",
+              "resource_ids": [
+                "demo-campus-center"
+              ],
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.10299999848939478
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action",
+          "model_schema_action",
+          "deterministic_fallback"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "1eb762f2e3c94716ab0f555758b19612",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4178.876400023,
+            "tokens_or_estimate": 389,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 353,
+            "completion_tokens": 36,
+            "load_duration_ms": 12.924,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "1eb762f2e3c94716ab0f555758b19612",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.11079999967478216
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "10e58ccad64100c4f2cd3be1a8f58edea4001fb2eb49d144c3715aca9ee2a7a8",
+          "output": "{\"arguments\":{\"resource_id\":\"demo-campus-center\",\"window\":\"friday_afternoon\"},\"kind\":\"tool\",\"tool\":\"get_resource_availability\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4634.026499988977,
+            "tokens_or_estimate": 696,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 664,
+            "completion_tokens": 32,
+            "load_duration_ms": 13.9649,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "1eb762f2e3c94716ab0f555758b19612",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.11079999967478216
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "success",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "available",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.10989999282173812
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "748eac24cf5b869450456b877e3032cb2448658a096f48c827e2ad8298f456cb",
+          "output": "{\"arguments\":{\"resource_ids\":[\"demo-campus-center\"]},\"kind\":\"tool\",\"tool\":\"prepare_referral_summary\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3446.8317000137176,
+            "tokens_or_estimate": 938,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 913,
+            "completion_tokens": 25,
+            "load_duration_ms": 18.5012,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "1eb762f2e3c94716ab0f555758b19612",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.11079999967478216
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "success",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "available",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.10989999282173812
+              },
+              {
+                "tool": "prepare_referral_summary",
+                "status": "success",
+                "data": {
+                  "draft": "模拟交接草稿：希望了解 示例校园心理中心（模拟）。仅供用户编辑，尚未提交或发送。",
+                  "resource_ids": [
+                    "demo-campus-center"
+                  ],
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.10299999848939478
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "prepare_referral_summary",
+                "arguments": {
+                  "resource_ids": [
+                    "demo-campus-center"
+                  ]
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": false,
+          "action_valid": false,
+          "decoder_schema_valid": false,
+          "error": "ReadTimeout",
+          "decoder_schema_sha256": "64779e8ebccf65373eae718644bbc7f7ddbd727573cb041e14270f6b20ecc29f",
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 2754.291600023862,
+            "tokens_or_estimate": 948,
+            "token_measurement": "character_estimate",
+            "error": "ReadTimeout"
+          }
+        }
+      ]
+    },
+    {
+      "id": "replan",
+      "repetition": 2,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 11440.276200009976,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "availability_unknown",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 2,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 4529.590799997095,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "latency_ms": 0.12419998529367149,
+            "error": null,
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": "get_resource_availability",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3987.4147000082303,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "get_resource_availability",
+            "observation_status": "empty",
+            "latency_ms": 0.08410000009462237,
+            "error": null,
+            "tool_arguments": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon"
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ]
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 2874.367699987488,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "success",
+            "data": {
+              "resources": [
+                {
+                  "id": "demo-campus-center",
+                  "name": "示例校园心理中心（模拟）",
+                  "channel": "in_person",
+                  "private": true,
+                  "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                  "windows": [
+                    "friday_afternoon"
+                  ],
+                  "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                  "simulated": true
+                }
+              ],
+              "simulated": true,
+              "privacy_conflict": false
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.12419998529367149
+          },
+          {
+            "tool": "get_resource_availability",
+            "status": "empty",
+            "data": {
+              "resource_id": "demo-campus-center",
+              "window": "friday_afternoon",
+              "availability": "unavailable",
+              "simulated": true
+            },
+            "source_refs": [
+              "fixture://support-resources/v1/demo-campus-center"
+            ],
+            "error": null,
+            "latency_ms": 0.08410000009462237
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "c016ba9fdd154e9abb37a7bf06132633",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 4528.439499990782,
+            "tokens_or_estimate": 386,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 350,
+            "completion_tokens": 36,
+            "load_duration_ms": 33.2934,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "c016ba9fdd154e9abb37a7bf06132633",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.12419998529367149
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "10e58ccad64100c4f2cd3be1a8f58edea4001fb2eb49d144c3715aca9ee2a7a8",
+          "output": "{\"arguments\":{\"resource_id\":\"demo-campus-center\",\"window\":\"friday_afternoon\"},\"kind\":\"tool\",\"tool\":\"get_resource_availability\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3985.8724999940023,
+            "tokens_or_estimate": 693,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 661,
+            "completion_tokens": 32,
+            "load_duration_ms": 11.739,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "c016ba9fdd154e9abb37a7bf06132633",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "success",
+                "data": {
+                  "resources": [
+                    {
+                      "id": "demo-campus-center",
+                      "name": "示例校园心理中心（模拟）",
+                      "channel": "in_person",
+                      "private": true,
+                      "privacy_policy": "模拟规则：独立咨询空间；保密范围及例外需向实际机构确认。",
+                      "windows": [
+                        "friday_afternoon"
+                      ],
+                      "source_ref": "fixture://support-resources/v1/demo-campus-center",
+                      "simulated": true
+                    }
+                  ],
+                  "simulated": true,
+                  "privacy_conflict": false
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.12419998529367149
+              },
+              {
+                "tool": "get_resource_availability",
+                "status": "empty",
+                "data": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon",
+                  "availability": "unavailable",
+                  "simulated": true
+                },
+                "source_refs": [
+                  "fixture://support-resources/v1/demo-campus-center"
+                ],
+                "error": null,
+                "latency_ms": 0.08410000009462237
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              },
+              {
+                "kind": "tool",
+                "tool": "get_resource_availability",
+                "arguments": {
+                  "resource_id": "demo-campus-center",
+                  "window": "friday_afternoon"
+                },
+                "resource_ids": [],
+                "reason": "",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "64aa6c5516c17757238c7925a885897065e83b96961a73217909191af489590e",
+          "output": "{\"kind\":\"safe_exit\",\"stop_reason\":\"availability_unknown\",\"reason\":\"无法在指定窗口找到可用的资源\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 2873.0460999940988,
+            "tokens_or_estimate": 945,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 921,
+            "completion_tokens": 24,
+            "load_duration_ms": 13.1859,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    },
+    {
+      "id": "missing_time",
+      "repetition": 2,
+      "expected": "needs_time",
+      "success": true,
+      "elapsed_ms": 17.498900007922202,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": false,
+      "result": {
+        "stop_reason": "needs_time",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 0,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "constraint_guard",
+            "latency_ms": 0,
+            "error": null
+          }
+        ],
+        "observations": [],
+        "planner_modes": [
+          "constraint_guard"
+        ]
+      },
+      "attempts": []
+    },
+    {
+      "id": "timeout_once",
+      "repetition": 2,
+      "expected": "completed",
+      "success": false,
+      "elapsed_ms": 6260.9058000089135,
+      "evidence_correct": true,
+      "unauthorized_success": false,
+      "fault_exercised": true,
+      "result": {
+        "stop_reason": "tool_timeout",
+        "options": [],
+        "draft": "",
+        "source_refs": [],
+        "simulated": true,
+        "tool_calls": 1,
+        "invalid_calls": 0,
+        "steps": [
+          {
+            "action": "PLAN",
+            "tool": "search_support_resources",
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 3606.218400003854,
+            "error": null
+          },
+          {
+            "action": "TOOL_CALL",
+            "tool": "search_support_resources",
+            "observation_status": "timeout",
+            "latency_ms": 0.057199998991563916,
+            "error": "tool_timeout",
+            "tool_arguments": {
+              "channel": "in_person",
+              "private": true
+            },
+            "source_refs": []
+          },
+          {
+            "action": "PLAN",
+            "tool": null,
+            "observation_status": "success",
+            "planner_mode": "model_schema_action",
+            "latency_ms": 2635.7356999942567,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "tool": "search_support_resources",
+            "status": "timeout",
+            "data": {},
+            "source_refs": [],
+            "error": "tool_timeout",
+            "latency_ms": 0.057199998991563916
+          }
+        ],
+        "planner_modes": [
+          "model_schema_action",
+          "model_schema_action"
+        ]
+      },
+      "attempts": [
+        {
+          "input": {
+            "task": {
+              "id": "ba833fc9bebf42a88be5662c4b87f1f6",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [],
+            "decisions": []
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "746e8e9580a6537e638256e04c970e978102c57aa2cff8c1f6cc3a365a5185cb",
+          "output": "{\"arguments\":{\"channel\":\"in_person\",\"private\":true},\"kind\":\"tool\",\"tool\":\"search_support_resources\",\"reason\":\"查找可核验的候选并准备草稿\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 3605.3709000116214,
+            "tokens_or_estimate": 386,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 350,
+            "completion_tokens": 36,
+            "load_duration_ms": 10.6433,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "input": {
+            "task": {
+              "id": "ba833fc9bebf42a88be5662c4b87f1f6",
+              "kind": "referral",
+              "constraints": {
+                "window": "friday_afternoon",
+                "private": true,
+                "channel": "in_person",
+                "strict_channel": false
+              },
+              "max_steps": 8,
+              "max_tool_calls": 6,
+              "timeout_seconds": 15.0
+            },
+            "observations": [
+              {
+                "tool": "search_support_resources",
+                "status": "timeout",
+                "data": {},
+                "source_refs": [],
+                "error": "tool_timeout",
+                "latency_ms": 0.057199998991563916
+              }
+            ],
+            "decisions": [
+              {
+                "kind": "tool",
+                "tool": "search_support_resources",
+                "arguments": {
+                  "channel": "in_person",
+                  "private": true
+                },
+                "resource_ids": [],
+                "reason": "查找可核验的候选并准备草稿",
+                "stop_reason": null
+              }
+            ]
+          },
+          "json_valid": true,
+          "action_valid": true,
+          "decoder_schema_valid": true,
+          "error": null,
+          "decoder_schema_sha256": "955916a050e26277f28317ca5c1124a1f507b4f5dd1b033a70cc3e4f0be1cbdb",
+          "output": "{\"kind\":\"safe_exit\",\"stop_reason\":\"tool_timeout\",\"reason\":\"未能在规定时间内找到合适的候选人\"}",
+          "output_truncated": false,
+          "call": {
+            "provider": "ollama",
+            "model": "mindbridge-qwen2.5-7b-ft:latest",
+            "latency_ms": 2633.695999975316,
+            "tokens_or_estimate": 597,
+            "token_measurement": "provider",
+            "error": null,
+            "prompt_tokens": 574,
+            "completion_tokens": 23,
+            "load_duration_ms": 15.9823,
+            "done_reason": "stop"
+          }
+        }
+      ]
+    }
+  ],
+  "warmup": null,
+  "limitations": [
+    "Small local samples; no clinical safety, full chat, RAG or network SSE validation",
+    "Synthetic local tools only; no DB, booking, notifications or sensitive user data",
+    "JSON conformance does not establish semantic planning quality",
+    "Provider usage unavailable for timed-out calls; reported token totals are incomplete",
+    "Long diagnostic budgets do not establish readiness under the production default",
+    "No independent Agent or alternate-model benefit demonstrated; P3/P5 remain deferred"
+  ],
+  "summary": {
+    "cases": 12,
+    "expected_outcomes": 3,
+    "model_cases": 9,
+    "model_only_expected_outcomes": 0,
+    "zero_inference_cases": 3,
+    "model_attempts": 26,
+    "json_valid": 24,
+    "action_valid": 24,
+    "decoder_schema_valid": 24,
+    "model_errors": 2,
+    "fallback_plans": 2,
+    "fallback_rate": 0.07692307692307693,
+    "fault_cases_exercised": 3,
+    "fault_cases_recovered": 0,
+    "unauthorized_successes": 0,
+    "elapsed_ms": {
+      "n": 12,
+      "mean": 8662.898258340041,
+      "p50": 9556.915200009826,
+      "p95": 16015.044200001284
+    },
+    "reported_prompt_tokens": 14360,
+    "reported_completion_tokens": 740
+  },
+  "passed": false
+}

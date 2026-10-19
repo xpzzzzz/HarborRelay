@@ -1,0 +1,149 @@
+{
+  "created_at": "2026-10-18T13:44:55.213617+00:00",
+  "run_id": "f7055481833a",
+  "checks": [
+    {
+      "id": "redis_roundtrip_bounds_ttl_privacy",
+      "passed": true,
+      "details": {
+        "bounded_messages": 4,
+        "parallel_appends": 32,
+        "masked": true,
+        "replace_and_clear": true
+      },
+      "elapsed_ms": 48.87334999966697
+    },
+    {
+      "id": "redis_append_transaction",
+      "passed": false,
+      "error": "TypeError",
+      "detail": "ManagementCommands.ping() takes 1 positional argument but 2 were given",
+      "elapsed_ms": 2003.8712390005458
+    },
+    {
+      "id": "redis_malformed_cache_is_untrusted",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "",
+      "elapsed_ms": 1.4911469997969107
+    },
+    {
+      "id": "redis_startup_failure_reconnects",
+      "passed": false,
+      "error": "IndexError",
+      "detail": "list index out of range",
+      "elapsed_ms": 451.5587650002999
+    },
+    {
+      "id": "redis_real_expiration",
+      "passed": true,
+      "details": {
+        "expired": true
+      },
+      "elapsed_ms": 1202.4890049997339
+    },
+    {
+      "id": "redis_miss_uses_authoritative_db_history",
+      "passed": true,
+      "details": {
+        "authoritative_sqlite_history_refilled_cache": true,
+        "source_label": "mysql_seeded"
+      },
+      "elapsed_ms": 8.023018000130833
+    },
+    {
+      "id": "chroma_live_ollama_index_and_query",
+      "passed": false,
+      "error": "VectorStoreUnavailable",
+      "detail": "ollama embedding request failed: ReadTimeout: timed out",
+      "elapsed_ms": 30064.826981000806
+    },
+    {
+      "id": "chroma_provider_outage_and_recovery",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "",
+      "elapsed_ms": 38.15407299953222
+    },
+    {
+      "id": "chroma_required_disabled_fails_closed",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "Required/disabled vector configuration silently fell back",
+      "elapsed_ms": 1.5233180001814617
+    },
+    {
+      "id": "chroma_rejects_non_finite_vectors",
+      "passed": false,
+      "error": "TypeError",
+      "detail": "can't multiply sequence by non-int of type 'NoneType'",
+      "elapsed_ms": 0.01648600027692737
+    },
+    {
+      "id": "chroma_reopen_snapshot_and_process_exit",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "Failed to send telemetry event ClientStartEvent: capture() takes 1 positional argument but 3 were given\nFailed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given\nFailed to send telemetry event CollectionQueryEvent: capture() takes 1 positional argument but 3 were given\nTraceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/workspace/app/evaluation",
+      "elapsed_ms": 5096.242413999789
+    },
+    {
+      "id": "chroma_model_identity_and_rebuild",
+      "passed": false,
+      "error": "AssertionError",
+      "detail": "",
+      "elapsed_ms": 114.9151579993486
+    },
+    {
+      "id": "high_risk_outbox_survives_provider_outage",
+      "passed": true,
+      "details": {
+        "high_risk_skipped_vector_provider": true,
+        "outbox_jobs_before_meta": 3,
+        "mock_ai_only": true
+      },
+      "elapsed_ms": 445.81368299986934
+    }
+  ],
+  "python": "3.12.13",
+  "redis_server": "7.2.14",
+  "packages": {
+    "redis": "5.2.1",
+    "chromadb": "0.5.23",
+    "numpy": "2.5.1",
+    "onnxruntime": "1.28.0",
+    "pydantic": "2.13.4"
+  },
+  "scope": "owned Redis namespace, scratch SQLite/Chroma, synthetic text and real local embeddings",
+  "limits": [
+    "No business database or sensitive data",
+    "Quiescent snapshot restore, not concurrent/crash-consistent backup",
+    "App child process exit only, not Redis/Chroma server disaster recovery",
+    "No real SMTP notifications"
+  ],
+  "app_source_sha256": "eae4e7ba6c6c8e5c38783c475da0cbd112a9d270fbaef77cb2a64ff3f0ad0049",
+  "passed": false,
+  "embedding_model": {
+    "name": "nomic-embed-text:latest",
+    "model": "nomic-embed-text:latest",
+    "modified_at": "2026-08-04T10:54:28.9896287+08:00",
+    "size": 274302450,
+    "digest": "0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "nomic-bert",
+      "families": [
+        "nomic-bert"
+      ],
+      "parameter_size": "137M",
+      "quantization_level": "F16",
+      "context_length": 2048,
+      "embedding_length": 768,
+      "runner": "ggml"
+    },
+    "capabilities": [
+      "embedding"
+    ]
+  },
+  "live_embedding_requests": 3
+}

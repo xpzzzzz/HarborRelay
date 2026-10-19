@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-18",
+  "python": "3.11.16",
+  "os": "Windows-10-10.0.26200-SP0",
+  "packages": {
+    "httpx": "0.28.1",
+    "pydantic": "2.14.1",
+    "SQLAlchemy": "2.0.36",
+    "pymysql": "1.1.1",
+    "langgraph": "0.4.3",
+    "mcp": "1.30.0",
+    "jsonschema": "4.26.0",
+    "argon2-cffi": "23.1.0"
+  },
+  "test_data": "synthetic only",
+  "production_changes": false,
+  "remote_push": false,
+  "real_notifications": false,
+  "support_resources_sha256": "9beb3bd27b70e90bbaba4583f73c381c13ca36e87c81c59aeea28f012b8663fb",
+  "exploratory_records": "Different prompts/schemas during investigation; not a controlled ablation"
+}

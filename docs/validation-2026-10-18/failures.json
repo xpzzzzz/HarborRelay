@@ -1,0 +1,132 @@
+[
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 0,
+    "id": "available",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "time_budget",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 1,
+    "id": "replan",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "availability_unknown",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 3,
+    "id": "timeout_once",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "tool_timeout",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": true
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 4,
+    "id": "available",
+    "repetition": 1,
+    "expected": "completed",
+    "observed": "repeated_results",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 5,
+    "id": "replan",
+    "repetition": 1,
+    "expected": "completed",
+    "observed": "availability_unknown",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 7,
+    "id": "timeout_once",
+    "repetition": 1,
+    "expected": "completed",
+    "observed": "tool_timeout",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": true
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 8,
+    "id": "available",
+    "repetition": 2,
+    "expected": "completed",
+    "observed": "time_budget",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 9,
+    "id": "replan",
+    "repetition": 2,
+    "expected": "completed",
+    "observed": "availability_unknown",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-15",
+    "case_index": 11,
+    "id": "timeout_once",
+    "repetition": 2,
+    "expected": "completed",
+    "observed": "tool_timeout",
+    "evidence": "ollama-schema-15/report.json",
+    "fault_exercised": true
+  },
+  {
+    "suite": "ollama-schema-120",
+    "case_index": 1,
+    "id": "replan",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "availability_unknown",
+    "evidence": "ollama-schema-120/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-schema-120",
+    "case_index": 3,
+    "id": "timeout_once",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "tool_timeout",
+    "evidence": "ollama-schema-120/report.json",
+    "fault_exercised": true
+  },
+  {
+    "suite": "ollama-prompt-120",
+    "case_index": 1,
+    "id": "replan",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "repeated_results",
+    "evidence": "ollama-prompt-120/report.json",
+    "fault_exercised": false
+  },
+  {
+    "suite": "ollama-prompt-120",
+    "case_index": 2,
+    "id": "timeout_once",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "repeated_results",
+    "evidence": "ollama-prompt-120/report.json",
+    "fault_exercised": true
+  }
+]

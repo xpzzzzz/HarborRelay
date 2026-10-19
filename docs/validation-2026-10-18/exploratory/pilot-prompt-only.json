@@ -1,0 +1,128 @@
+[
+  {
+    "id": "available",
+    "stop_reason": "time_budget",
+    "elapsed_ms": 17401.469599979464,
+    "planner_modes": [
+      "deterministic_fallback",
+      "deterministic_fallback"
+    ],
+    "tool_calls": 1,
+    "steps": [
+      {
+        "action": "PLAN",
+        "tool": "search_support_resources",
+        "observation_status": "error",
+        "planner_mode": "deterministic_fallback",
+        "latency_ms": 6305.862800014438,
+        "error": "ValidationError"
+      },
+      {
+        "action": "TOOL_CALL",
+        "tool": "search_support_resources",
+        "observation_status": "success",
+        "latency_ms": 0.13849997776560485,
+        "error": null,
+        "tool_arguments": {
+          "channel": "in_person",
+          "private": true
+        },
+        "source_refs": [
+          "fixture://support-resources/v1/demo-campus-center"
+        ]
+      },
+      {
+        "action": "PLAN",
+        "tool": "get_resource_availability",
+        "observation_status": "error",
+        "planner_mode": "deterministic_fallback",
+        "latency_ms": 8730.438500002492,
+        "error": "ReadTimeout"
+      }
+    ],
+    "responses": [
+      "{\n  \"kind\": \"ask_user\",\n  \"arguments\": {\n    \"search_support_resources\": {\n      \"channel\": \"in_person\",\n      \"private\": true\n    }\n  }\n}"
+    ],
+    "model_calls": [
+      {
+        "provider": "ollama",
+        "model": "mindbridge-qwen2.5-7b-ft:latest",
+        "latency_ms": 6305.283099994995,
+        "tokens_or_estimate": 608,
+        "token_measurement": "character_estimate",
+        "error": null
+      },
+      {
+        "provider": "ollama",
+        "model": "mindbridge-qwen2.5-7b-ft:latest",
+        "latency_ms": 8726.861500006635,
+        "tokens_or_estimate": 742,
+        "token_measurement": "character_estimate",
+        "error": "ReadTimeout"
+      }
+    ]
+  },
+  {
+    "id": "replan",
+    "stop_reason": "time_budget",
+    "elapsed_ms": 15061.879299988504,
+    "planner_modes": [
+      "deterministic_fallback",
+      "deterministic_fallback"
+    ],
+    "tool_calls": 1,
+    "steps": [
+      {
+        "action": "PLAN",
+        "tool": "search_support_resources",
+        "observation_status": "error",
+        "planner_mode": "deterministic_fallback",
+        "latency_ms": 7219.168600015109,
+        "error": "ValidationError"
+      },
+      {
+        "action": "TOOL_CALL",
+        "tool": "search_support_resources",
+        "observation_status": "success",
+        "latency_ms": 0.10730000212788582,
+        "error": null,
+        "tool_arguments": {
+          "channel": "in_person",
+          "private": true
+        },
+        "source_refs": [
+          "fixture://support-resources/v1/demo-campus-center"
+        ]
+      },
+      {
+        "action": "PLAN",
+        "tool": "get_resource_availability",
+        "observation_status": "error",
+        "planner_mode": "deterministic_fallback",
+        "latency_ms": 7807.2736999893095,
+        "error": "ReadTimeout"
+      }
+    ],
+    "responses": [
+      "{\n  \"kind\": \"ask_user\",\n  \"arguments\": {\n    \"message\": \"请选择您希望进行面对面咨询的资源。\",\n    \"search_filters\": {\n      \"channel\": \"in_person\",\n      \"private\": true\n    }\n  },\n  \"resource_ids\": []\n}"
+    ],
+    "model_calls": [
+      {
+        "provider": "ollama",
+        "model": "mindbridge-qwen2.5-7b-ft:latest",
+        "latency_ms": 7218.525000003865,
+        "tokens_or_estimate": 620,
+        "token_measurement": "character_estimate",
+        "error": null
+      },
+      {
+        "provider": "ollama",
+        "model": "mindbridge-qwen2.5-7b-ft:latest",
+        "latency_ms": 7803.558400017209,
+        "tokens_or_estimate": 742,
+        "token_measurement": "character_estimate",
+        "error": "ReadTimeout"
+      }
+    ]
+  }
+]

@@ -8,8 +8,8 @@ from app.agents.factory import agent_framework_status
 from app.agents.runtime import AgentRuntimeService
 from app.core.config import get_settings
 from app.core.database import get_db
-from app.core.security import current_user, require_admin
-from app.models.entities import UserAccount
+from app.core.security import current_user, require_admin, require_staff
+from app.models.entities import UserAccount, ChatSession
 from app.schemas.dtos import CaseActionRequest, CaseNoteRequest, KnowledgeIngestRequest, KnowledgeIngestResponse, ChatRequest, authority
 from app.services.chat import ChatService
 from app.services.knowledge import KnowledgeService
@@ -42,8 +42,10 @@ async def chat_stream(
     user: Annotated[UserAccount, Depends(current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    if "ROLE_ADMIN" in user.roles:
+    if {"ROLE_ADMIN","ROLE_COUNSELOR"}.intersection(user.roles):
         raise HTTPException(403, "管理员账号只能查看后台记录，不能发起学生对话。")
+    if request.sessionId and db.query(ChatSession).filter_by(public_id=request.sessionId, user_id=user.id).first() is None:
+        raise HTTPException(404, "Session not found")
     service = ChatService(db, get_settings())
     return StreamingResponse(service.stream_chat(user, request), media_type="text/event-stream")
 
@@ -67,6 +69,9 @@ def agent_status(user: Annotated[UserAccount, Depends(current_user)]):
             {"name": "RiskGuardianAgent", "status": "READY", "description": "心理风险识别与分级"},
             {"name": "CompanionAgent", "status": "READY", "description": "普通陪伴式回复"},
             {"name": "CounselorAgent", "status": "READY", "description": "咨询式支持回复"},
+            {"name":"ReferralAgent", "status":"READY" if settings.referral_enabled else "DISABLED",
+             "planner":settings.referral_planner,
+             "description":"本地模拟工具反馈循环；规则策略" if settings.referral_planner == "rules" else "实验性单模型规划"},
         ],
         "skills": MindBridgeSkillLibrary.status_items(),
         "runtimeHarness": {
@@ -75,9 +80,12 @@ def agent_status(user: Annotated[UserAccount, Depends(current_user)]):
             "description": "统一管理单轮 Agent run 的输入脱敏、上下文注入、风险报告、工具计划和 trace 输出",
         },
         "loop": {
-            "type": "bounded-agent-loop",
             "maxSteps": AgentRuntimeService.max_steps,
             "scheduler": "langgraph-controller" if framework["active"] == "langgraph" else "custom-runtime",
+            "type": "deterministic-safety-shell",
+            "referral": {"enabled":settings.referral_enabled,"maxSteps":settings.referral_max_steps,
+                         "maxToolCalls":settings.referral_max_tool_calls,"simulated":True,
+                         "planner":settings.referral_planner},
         },
     }
 
@@ -103,19 +111,26 @@ def admin_alerts(_: Annotated[UserAccount, Depends(require_admin)], db: Annotate
 
 
 @router.get("/api/admin/cases")
-def admin_cases(_: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
-    return ReportService(db).risk_cases()
+def admin_cases(user: Annotated[UserAccount, Depends(require_staff)], db: Annotated[Session, Depends(get_db)]):
+    return ReportService(db).risk_cases(user)
 
 
 @router.get("/api/admin/cases/{case_id}/notes")
-def admin_case_notes(case_id: int, _: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
-    return ReportService(db).case_notes(case_id)
+def admin_case_notes(case_id: int, user: Annotated[UserAccount, Depends(require_staff)], db: Annotated[Session, Depends(get_db)]):
+    try:
+        return ReportService(db).case_notes(case_id, user)
+    except PermissionError as exc:
+        raise HTTPException(403, "Case access denied") from exc
+    except ValueError as exc:
+        raise HTTPException(404, "Case not found") from exc
 
 
 @router.post("/api/admin/cases/{case_id}/acknowledge")
-def admin_acknowledge_case(case_id: int, request: CaseActionRequest, user: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
+def admin_acknowledge_case(case_id: int, request: CaseActionRequest, user: Annotated[UserAccount, Depends(require_staff)], db: Annotated[Session, Depends(get_db)]):
     try:
-        case = ToolOrchestrationService(db, get_settings()).acknowledge_case(case_id, user.username, request.note)
+        case = ToolOrchestrationService(db, get_settings()).acknowledge_case(case_id, user, request.note)
+    except PermissionError as exc:
+        raise HTTPException(403, "Case access denied") from exc
     except RuntimeError as exc:
         raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:
@@ -124,20 +139,24 @@ def admin_acknowledge_case(case_id: int, request: CaseActionRequest, user: Annot
 
 
 @router.post("/api/admin/cases/{case_id}/notes")
-def admin_add_case_note(case_id: int, request: CaseNoteRequest, user: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
+def admin_add_case_note(case_id: int, request: CaseNoteRequest, user: Annotated[UserAccount, Depends(require_staff)], db: Annotated[Session, Depends(get_db)]):
     try:
-        ToolOrchestrationService(db, get_settings()).add_case_note(case_id, user.username, request.note)
+        ToolOrchestrationService(db, get_settings()).add_case_note(case_id, user, request.note)
+    except PermissionError as exc:
+        raise HTTPException(403, "Case access denied") from exc
     except RuntimeError as exc:
         raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
-    return ReportService(db).case_notes(case_id)
+    return ReportService(db).case_notes(case_id, user)
 
 
 @router.post("/api/admin/cases/{case_id}/close")
-def admin_close_case(case_id: int, request: CaseNoteRequest, user: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
+def admin_close_case(case_id: int, request: CaseNoteRequest, user: Annotated[UserAccount, Depends(require_staff)], db: Annotated[Session, Depends(get_db)]):
     try:
-        case = ToolOrchestrationService(db, get_settings()).close_case(case_id, user.username, request.note)
+        case = ToolOrchestrationService(db, get_settings()).close_case(case_id, user, request.note)
+    except PermissionError as exc:
+        raise HTTPException(403, "Case access denied") from exc
     except RuntimeError as exc:
         raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:

@@ -1,0 +1,24 @@
+{
+  "created_at": "2026-10-18T13:42:52.731152+00:00",
+  "run_id": "438ebe0c14a4",
+  "passed": false,
+  "cleanup_succeeded": true,
+  "evidence_directory": "D:\\Python-Project\\HarborRelay\\mindbridge-py\\target\\infrastructure-before-fix-2\\438ebe0c14a4",
+  "scope": "New owned containers; scratch tmpfs; readonly source/skills; no host DB/data mounts",
+  "app_image": "mindbridge-py-app:latest",
+  "redis_image": "redis:7.2-alpine",
+  "app_image_id": "sha256:71313c1db169cef225b99bfc2aa7b97d8adb3fbcc35a22158c190ef2b4c3257a",
+  "redis_image_id": "sha256:dfa18828cbc07b3ae6a95ec7343f6c214fdee2d836197b4be8e9904420762cd8",
+  "probe_exit_code": 1,
+  "error": "Probe produced no structured result",
+  "cleanup": [
+    {
+      "id": "d8609300cd475e72e19d76db1c379c915150c62ff2c4b7da61c6965db2c62f20",
+      "removed": true
+    },
+    {
+      "id": "a255d8587cd17789c2d59dd756e5e4f2600b3f6f7fc745bde2177a9c9f68a8dd",
+      "removed": true
+    }
+  ]
+}

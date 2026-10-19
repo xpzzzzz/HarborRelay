@@ -1,0 +1,128 @@
+{
+  "created_at": "2026-10-18T14:38:55.569938+00:00",
+  "base_commit": "f172dd833377ceda268d4a481f558be32dff9942",
+  "branch": "main",
+  "working_changes_not_committed_or_pushed": true,
+  "app_source_sha256": "89c647acb9e68bda4e310d88d934d4c6036c6dde082005c30c6a7dde9d863644",
+  "app_files_sha256": {
+    "app/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/agents/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/agents/contracts.py": "3194b1e55c5dc9f4560f3415238dd78913575a100b61b9a5afb17b1c0c03df43",
+    "app/agents/factory.py": "6c99500b8c1d803fa845de79b8aa44ec98fd8c86253a4406a6d43def4be1cd7b",
+    "app/agents/harness.py": "a406bf6dbdbed401d1bf005988fe96efad0e058a721a2d3688c5c0fdf5e55832",
+    "app/agents/langgraph_runtime.py": "2a9bdef0cca1b3045e0bbb5d39bf4f75b776a69f97538edfa3934e72e47f3287",
+    "app/agents/referral.py": "ec69af00d4738040799a9e03b50cf4eb7830b6ade2976bacea2c59a3ce13e2ad",
+    "app/agents/runtime.py": "1097e48a64fdced89c11f83d2baf0cabc278e5b7dfcb358c09b98b3c5f35b0a8",
+    "app/api/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/api/routes.py": "6a469204ae52f8befe56800d1a9bb7840675b305e3cf3be8784f4ff2b3f3c961",
+    "app/core/bootstrap.py": "96d2bb0cb26b76dc33c63c9fc6bef42452d0b5b309567f1d89de268bec0fda8d",
+    "app/core/config.py": "1c1dc1c295dd16dd29fac832e26df572c22fdc68b926ebdbd52b1f82bc9da507",
+    "app/core/database.py": "164a3d91d11129679ae6b355f802e7b96a5efe05dbd152132f1d1b5b906d37b5",
+    "app/core/enums.py": "724ab6479fb4dff085d2213c170c3f12949b20e0c19415c02277e4d2953cdd0f",
+    "app/core/security.py": "f3d5a27a3f1c2b5f82b8fb884a19d0d0d15dd012c1aae0086c304a62682d8e55",
+    "app/evaluation/__init__.py": "a055c19f7befd369cbd8b6c69945bdc7b46d06481d39ceb609b16953d1ad5d0a",
+    "app/evaluation/infrastructure_probe.py": "1510e6f18145130e8eb2f19da5b21ab74a23f3689d07487bd32ea5899ce67e36",
+    "app/evaluation/infrastructure_runner.py": "af06a9474605c28710773318545f868121612a1e8738d27c74d4bdb0348cc6da",
+    "app/evaluation/mysql_runner.py": "ea7787e4f4cec3e7c21de8fb05bbfb89a8fe6b1a56f19c0cf58a3db77d765a48",
+    "app/evaluation/ollama_runner.py": "795395b654981beedd6b24aba2e40ce915e52bc50f62ce07917be8b89bf25a75",
+    "app/evaluation/planner_comparison.py": "a042e5bd121b74a503f6bd4464ca02564798960ed7dd20e27e794ab6eddc8b2f",
+    "app/evaluation/probe.py": "89cc54527678062d5298f3da22b18f438e27f84f0998e3f67e0cddbd1f8f0c82",
+    "app/evaluation/runner.py": "4fc845e85a6a7dadd6cf8b30bd69bd68f5a274224cc84a2db2df730fdfe46a28",
+    "app/evaluation/scenarios.py": "106b6af89f3f4f9e01487eb1c5638516a34e0864c268315f5a995a35455e590d",
+    "app/evaluation/smtp_sandbox.py": "3589193d02f52df4f70c89064b08249d8124b20ceb6df121e67021ad82c7b3b8",
+    "app/harness/__init__.py": "28e61b408e5eb5eca00b4e960995baf8205e98c7e26ade049f2a75bf6513efec",
+    "app/harness/runner.py": "eedb32f0adb98eb5b68e0e2a8411ce55406be5a5653a0e62c0f569a6c88011ca",
+    "app/main.py": "d1e24bd39f8c486f25087742f5dc5794e6c3aa4c3355a375d4aed55d2b685611",
+    "app/mcp_tools/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/mcp_tools/server.py": "45d7cb789d00ffce6a24681b0fc397e3c23df28d4a81617f21889f9eb504bb19",
+    "app/models/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/models/entities.py": "e1b83d1ddec3168b3c52fcd200e65e72122135e4d4cce660f5eb90bad8990fad",
+    "app/rag_eval/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/rag_eval/runner.py": "af44a409ad2885ca2d932ec13bfd6180b30c7fd471b3d3076735c462d6dc35ca",
+    "app/schemas/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "app/schemas/dtos.py": "8d6df5aef3ee5f8aabf65ab5a555e9544adce2c8fbf71eac850004701e3f75a7",
+    "app/services/ai.py": "0e2bffc28898f85d4b41e19c806e7637cfed608645c72a7517b60f4ff5cacd1b",
+    "app/services/assessment.py": "d40f02bd41a300c8ebc37c6308e2de4addbf8e812e9c80de8a14d5e7d485474e",
+    "app/services/chat.py": "1cda6bf8b33a437b52e748ab5dfa3b101330b3cfa7f945aaf9489dd8b5fe9c7f",
+    "app/services/knowledge.py": "1336a34fb73295b0b26789bc5a7d4f91b01a06fa69f5531371f1035c9bdf947e",
+    "app/services/mcp_client.py": "1cd9bd7220e5832363ee8d091f1df6d6322ba8348cd1602ffd8c9fb2de4542e6",
+    "app/services/memory.py": "42e0786dae327a30278b070d300955cc70689c2a33eb0958d983983750f38b34",
+    "app/services/model_assets.py": "cd763f0d58c5479888d88638043cac186bfdf6516d0f6286b197c16fa08fbcb2",
+    "app/services/privacy.py": "857e914cbd5d0e59cb7b939f68c4fe72df6f80b57dfcaddb78c4b66cd3d7b6b4",
+    "app/services/referral_tools.py": "37ea96e6cf0851886406aa85e85dca1702fcb062296c3cd66de663c6903070f4",
+    "app/services/report.py": "28f8b00fb040ab95d059ef03048d18c612e52ebcd6445fe1941d78f696d3544a",
+    "app/services/safety.py": "213bbddaec11be2c35755bda83bcfac2bfc146747319e9fcd207e89b89ae6df3",
+    "app/services/skills.py": "46b86f8fbf69e56e7a973616a1551fd1ce72fa0ee63b920c0ee148348f76506b",
+    "app/services/tool_governance.py": "6c76e9665d824a289e21531b23a543e7dbd652f59ddafe6ae61592525fe03349",
+    "app/services/tool_queue.py": "f344d82ff577d072bc9c588bea56f653c3211ca6d4fda5dbddb4a4af2f1c678d",
+    "app/services/tools.py": "1fba984c9689a179992e50fd757dd05f0827ab3431dfa95fe8b5f2a2c2d51194",
+    "app/services/trace.py": "fb6ae69c1a44bb76e4d36d49ca719cb0285dd0fa56f96f9e3a68c0426f71ed8b",
+    "app/services/vector_snapshots.py": "43f9a061c069e9d1253c218d85bcd0142d599ed487f1d4c7812eeac2ded45fea",
+    "app/services/vector_store.py": "8209ad1aec380a1fbb0fa61663aa2e7bb80f448aca76c853b4e7f577afb70ebc"
+  },
+  "this_closure_changed_python": [
+    "app/services/memory.py",
+    "app/services/vector_snapshots.py",
+    "app/services/vector_store.py",
+    "app/services/knowledge.py",
+    "app/services/tools.py",
+    "app/agents/runtime.py",
+    "app/agents/harness.py",
+    "app/harness/runner.py",
+    "app/evaluation/infrastructure_probe.py",
+    "app/evaluation/mysql_runner.py",
+    "app/evaluation/smtp_sandbox.py",
+    "tests/test_memory_coherence.py",
+    "tests/test_smtp_sandbox.py",
+    "tests/test_vector_snapshots.py"
+  ],
+  "all_required_engineering_gates_passed": true,
+  "unit_tests": {
+    "passed": 126,
+    "total": 126
+  },
+  "harness": {
+    "passed": 6,
+    "total": 6
+  },
+  "mock": {
+    "conversation_passed": 21,
+    "total": 21,
+    "fault_scenarios_passed": 45,
+    "safety_gates_passed": 7
+  },
+  "mysql": {
+    "run_id": "9527cfc9ebf1",
+    "checks_passed": 9,
+    "cleanup_succeeded": true
+  },
+  "redis_chroma": {
+    "run_id": "31fe0161f52e",
+    "checks_passed": 16,
+    "cleanup_succeeded": true
+  },
+  "smtp": {
+    "test_methods": 5,
+    "transport": "loopback-only synthetic TCP sink; .invalid addresses; never relays"
+  },
+  "planner": {
+    "default": "rules",
+    "real_model_reliability_gate_passed": false,
+    "reason": "Prior paired experiments did not demonstrate model planning benefit; keep explicit model experiment"
+  },
+  "excluded": [
+    "P3 independent agents/model routing",
+    "P5 cross-client MCP"
+  ],
+  "persistent_tables_or_schema_migrations": false,
+  "real_sensitive_data_or_notifications": false,
+  "remaining_limits": [
+    "append-only history and DB transaction visibility",
+    "single-process embedded Chroma writers",
+    "logical collection backup, not atomic DB/vector disaster recovery",
+    "SMTP at-least-once may duplicate",
+    "no real SMTP delivery/TLS-success certificate or clinical validation",
+    "no Windows-native Chroma or distributed side-effect validation"
+  ],
+  "synthetic_containers_still_running": []
+}

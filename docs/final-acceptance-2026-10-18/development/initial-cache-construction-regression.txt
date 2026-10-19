@@ -1,0 +1,153 @@
+test_actual_api_rejects_student_and_other_owner_and_derives_actor (test_api_authorization.ApiAuthorizationTests.test_actual_api_rejects_student_and_other_owner_and_derives_actor) ... ok
+test_foreign_session_is_rejected_before_sse_headers (test_api_authorization.ApiAuthorizationTests.test_foreign_session_is_rejected_before_sse_headers) ... ok
+test_acknowledge_follow_up_and_close_preserve_history (test_case_workflow.CaseWorkflowTests.test_acknowledge_follow_up_and_close_preserve_history) ... ok
+test_invalid_transitions_do_not_create_notes (test_case_workflow.CaseWorkflowTests.test_invalid_transitions_do_not_create_notes) ... ok
+test_non_finite_provider_and_cached_embeddings_are_rejected (test_infrastructure_contracts.InfrastructureContractsTests.test_non_finite_provider_and_cached_embeddings_are_rejected) ... ok
+test_probe_refuses_host_scope_or_unowned_container (test_infrastructure_contracts.InfrastructureContractsTests.test_probe_refuses_host_scope_or_unowned_container) ... ok
+test_required_vectors_cannot_be_silently_disabled (test_infrastructure_contracts.InfrastructureContractsTests.test_required_vectors_cannot_be_silently_disabled) ... ok
+test_startup_ping_failure_does_not_permanently_disable_cache (test_infrastructure_contracts.InfrastructureContractsTests.test_startup_ping_failure_does_not_permanently_disable_cache) ... Redis memory initially unavailable; later calls may reconnect: synthetic startup outage
+ok
+test_status_does_not_retain_error_after_provider_recovers (test_infrastructure_contracts.InfrastructureContractsTests.test_status_does_not_retain_error_after_provider_recovers) ... ok
+test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings (test_infrastructure_contracts.InfrastructureContractsTests.test_untrusted_cache_cannot_add_system_roles_or_discard_valid_siblings) ... ok
+test_empty_or_privileged_db_history_cannot_promote_cache_content (test_memory_coherence.MemoryCoherenceTests.test_empty_or_privileged_db_history_cannot_promote_cache_content) ... ok
+test_missing_middle_write_then_successful_append_cannot_hide_history (test_memory_coherence.MemoryCoherenceTests.test_missing_middle_write_then_successful_append_cannot_hide_history) ... ok
+test_out_of_order_duplicate_and_legacy_payloads_are_misses (test_memory_coherence.MemoryCoherenceTests.test_out_of_order_duplicate_and_legacy_payloads_are_misses) ... ok
+test_racing_stale_refill_cannot_be_used_on_next_read (test_memory_coherence.MemoryCoherenceTests.test_racing_stale_refill_cannot_be_used_on_next_read) ... ok
+test_read_write_errors_still_return_sanitized_committed_history (test_memory_coherence.MemoryCoherenceTests.test_read_write_errors_still_return_sanitized_committed_history) ... ok
+test_real_store_rejects_missing_invalid_and_reordered_ids (test_memory_coherence.MemoryCoherenceTests.test_real_store_rejects_missing_invalid_and_reordered_ids) ... ok
+test_tied_timestamps_use_message_ids_and_bound_the_window (test_memory_coherence.MemoryCoherenceTests.test_tied_timestamps_use_message_ids_and_bound_the_window) ... ok
+test_compaction_can_be_disabled (test_memory_compaction.MemoryCompactionTests.test_compaction_can_be_disabled) ... ok
+test_compaction_keeps_recent_messages_and_adds_internal_summary (test_memory_compaction.MemoryCompactionTests.test_compaction_keeps_recent_messages_and_adds_internal_summary) ... ok
+test_summary_is_bounded (test_memory_compaction.MemoryCompactionTests.test_summary_is_bounded) ... ok
+test_docker_host_override_is_rejected (test_mysql_probe_safety.MysqlProbeSafetyTests.test_docker_host_override_is_rejected) ... ok
+test_remote_docker_context_is_rejected (test_mysql_probe_safety.MysqlProbeSafetyTests.test_remote_docker_context_is_rejected) ... ok
+test_validated_context_is_pinned_for_container_operations (test_mysql_probe_safety.MysqlProbeSafetyTests.test_validated_context_is_pinned_for_container_operations) ... ok
+test_cache_identity_prevents_cross_model_reuse (test_ollama_embeddings.OllamaEmbeddingTests.test_cache_identity_prevents_cross_model_reuse) ... ok
+test_collection_identity_changes_with_provider_and_model (test_ollama_embeddings.OllamaEmbeddingTests.test_collection_identity_changes_with_provider_and_model) ... ok
+test_embedding_count_mismatch_is_rejected (test_ollama_embeddings.OllamaEmbeddingTests.test_embedding_count_mismatch_is_rejected) ... ok
+test_existing_collection_dimension_is_inferred (test_ollama_embeddings.OllamaEmbeddingTests.test_existing_collection_dimension_is_inferred) ... ok
+test_ollama_uses_batch_embed_endpoint (test_ollama_embeddings.OllamaEmbeddingTests.test_ollama_uses_batch_embed_endpoint) ... ok
+test_openai_route_remains_supported (test_ollama_embeddings.OllamaEmbeddingTests.test_openai_route_remains_supported) ... ok
+test_optional_vector_failure_keeps_fallback_semantics (test_ollama_embeddings.OllamaEmbeddingTests.test_optional_vector_failure_keeps_fallback_semantics) ... Chroma vector + BM25 hybrid + local reranker retrieve failed; falling back to local BM25 + hybrid_score reranker: ollama unavailable
+ok
+test_record_dimension_does_not_modify_chroma_metadata (test_ollama_embeddings.OllamaEmbeddingTests.test_record_dimension_does_not_modify_chroma_metadata) ... ok
+test_required_vector_failure_is_raised (test_ollama_embeddings.OllamaEmbeddingTests.test_required_vector_failure_is_raised) ... ok
+test_constraint_guard_is_not_counted_as_model_success (test_ollama_probe.OllamaProbeTests.test_constraint_guard_is_not_counted_as_model_success) ... ok
+test_legacy_thinking_markup_is_not_saved_or_parsed_into_action (test_ollama_probe.OllamaProbeTests.test_legacy_thinking_markup_is_not_saved_or_parsed_into_action) ... ok
+test_probe_rejects_remote_origins_and_credentials (test_ollama_probe.OllamaProbeTests.test_probe_rejects_remote_origins_and_credentials) ... ok
+test_valid_json_with_fallback_is_not_pure_model_success (test_ollama_probe.OllamaProbeTests.test_valid_json_with_fallback_is_not_pure_model_success) ... ok
+test_custom_runtime_preserves_rule_policy_behavior (test_planner_strategies.PlannerStrategyTests.test_custom_runtime_preserves_rule_policy_behavior) ... ok
+test_rule_benchmark_uses_no_inference_and_held_out_variants_pass (test_planner_strategies.PlannerStrategyTests.test_rule_benchmark_uses_no_inference_and_held_out_variants_pass) ... ok
+test_rule_default_is_explicit_and_unknown_strategy_is_rejected (test_planner_strategies.PlannerStrategyTests.test_rule_default_is_explicit_and_unknown_strategy_is_rejected) ... ok
+test_rule_policy_cannot_bypass_executor_authorization (test_planner_strategies.PlannerStrategyTests.test_rule_policy_cannot_bypass_executor_authorization) ... ok
+test_rule_policy_needs_no_ai_and_still_reacts_to_tools (test_planner_strategies.PlannerStrategyTests.test_rule_policy_needs_no_ai_and_still_reacts_to_tools) ... ok
+test_rule_policy_preserves_risk_interrupts_and_budgets (test_planner_strategies.PlannerStrategyTests.test_rule_policy_preserves_risk_interrupts_and_budgets) ... ok
+test_high_risk_signal_uses_hard_guard_before_model (test_privacy_and_assessment.PrivacyAndAssessmentTests.test_high_risk_signal_uses_hard_guard_before_model) ... ok
+test_privacy_sanitizer_masks_common_identifiers (test_privacy_and_assessment.PrivacyAndAssessmentTests.test_privacy_sanitizer_masks_common_identifiers) ... ok
+test_redis_memory_serializes_sanitized_content (test_privacy_and_assessment.PrivacyAndAssessmentTests.test_redis_memory_serializes_sanitized_content) ... ok
+test_api_compatible_sse_with_evidence_and_no_handoff_side_effect (test_referral_loop.ReferralIntegrationTests.test_api_compatible_sse_with_evidence_and_no_handoff_side_effect) ... ok
+test_feature_switch_preserves_safety_and_original_reply_path (test_referral_loop.ReferralIntegrationTests.test_feature_switch_preserves_safety_and_original_reply_path) ... ok
+test_framework_unavailable_preserves_full_referral_fallback (test_referral_loop.ReferralIntegrationTests.test_framework_unavailable_preserves_full_referral_fallback) ... ok
+test_high_risk_during_referral_switches_to_safety_template (test_referral_loop.ReferralIntegrationTests.test_high_risk_during_referral_switches_to_safety_template) ... ok
+test_missing_time_can_be_supplied_on_next_turn (test_referral_loop.ReferralIntegrationTests.test_missing_time_can_be_supplied_on_next_turn) ... ok
+test_runtime_selects_explicit_policy_and_keeps_model_option (test_referral_loop.ReferralIntegrationTests.test_runtime_selects_explicit_policy_and_keeps_model_option) ... ok
+test_custom_fallback_matches_subgraph (test_referral_loop.ReferralLoopTests.test_custom_fallback_matches_subgraph) ... ok
+test_deadline_during_planning_prevents_tool_execution (test_referral_loop.ReferralLoopTests.test_deadline_during_planning_prevents_tool_execution) ... ok
+test_duplicate_action_is_bounded (test_referral_loop.ReferralLoopTests.test_duplicate_action_is_bounded) ... ok
+test_empty_results_broaden_then_stop (test_referral_loop.ReferralLoopTests.test_empty_results_broaden_then_stop) ... ok
+test_malformed_json_is_explicit_fallback (test_referral_loop.ReferralLoopTests.test_malformed_json_is_explicit_fallback) ... ok
+test_mislabeled_unknown_observation_is_rejected (test_referral_loop.ReferralLoopTests.test_mislabeled_unknown_observation_is_rejected) ... ok
+test_missing_time_asks_without_tool_or_model_call (test_referral_loop.ReferralLoopTests.test_missing_time_asks_without_tool_or_model_call) ... ok
+test_model_cannot_relax_privacy_or_time (test_referral_loop.ReferralLoopTests.test_model_cannot_relax_privacy_or_time) ... ok
+test_model_receives_updated_observations (test_referral_loop.ReferralLoopTests.test_model_receives_updated_observations) ... ok
+test_observation_changes_next_action_and_has_real_provenance (test_referral_loop.ReferralLoopTests.test_observation_changes_next_action_and_has_real_provenance) ... ok
+test_omitted_defaults_cannot_bypass_duplicate_call_guard (test_referral_loop.ReferralLoopTests.test_omitted_defaults_cannot_bypass_duplicate_call_guard) ... ok
+test_persistent_timeout_exits_after_one_retry (test_referral_loop.ReferralLoopTests.test_persistent_timeout_exits_after_one_retry) ... ok
+test_privacy_conflict_does_not_relax_privacy (test_referral_loop.ReferralLoopTests.test_privacy_conflict_does_not_relax_privacy) ... ok
+test_retry_exception_applies_only_to_exact_timed_out_call (test_referral_loop.ReferralLoopTests.test_retry_exception_applies_only_to_exact_timed_out_call) ... ok
+test_risk_preempts_before_and_after_tools (test_referral_loop.ReferralLoopTests.test_risk_preempts_before_and_after_tools) ... ok
+test_step_and_tool_budgets_stop (test_referral_loop.ReferralLoopTests.test_step_and_tool_budgets_stop) ... ok
+test_tool_error_is_not_success (test_referral_loop.ReferralLoopTests.test_tool_error_is_not_success) ... ok
+test_transient_timeout_retries_and_recovers (test_referral_loop.ReferralLoopTests.test_transient_timeout_retries_and_recovers) ... ok
+test_unauthorized_side_effect_is_denied_without_execution (test_referral_loop.ReferralLoopTests.test_unauthorized_side_effect_is_denied_without_execution) ... ok
+test_unknown_availability_is_not_invented (test_referral_loop.ReferralLoopTests.test_unknown_availability_is_not_invented) ... ok
+test_unobserved_finish_is_rejected (test_referral_loop.ReferralLoopTests.test_unobserved_finish_is_rejected) ... ok
+test_all_intents_force_risk_assessment_in_both_runtimes (test_safety_boundaries.SafetyBoundariesTests.test_all_intents_force_risk_assessment_in_both_runtimes) ... ok
+test_assessment_exception_is_conservative (test_safety_boundaries.SafetyBoundariesTests.test_assessment_exception_is_conservative) ... ok
+test_assessment_override_cannot_be_lowered_by_chat_classifier (test_safety_boundaries.SafetyBoundariesTests.test_assessment_override_cannot_be_lowered_by_chat_classifier) ... ok
+test_cache_initialization_failure_cannot_skip_normal_risk_assessment (test_safety_boundaries.SafetyBoundariesTests.test_cache_initialization_failure_cannot_skip_normal_risk_assessment) ... ERROR
+test_dead_dependency_converges_to_dead_letter (test_safety_boundaries.SafetyBoundariesTests.test_dead_dependency_converges_to_dead_letter) ... ok
+test_dead_job_is_not_silently_recreated_by_enqueue (test_safety_boundaries.SafetyBoundariesTests.test_dead_job_is_not_silently_recreated_by_enqueue) ... ok
+test_disconnect_after_meta_keeps_committed_outbox (test_safety_boundaries.SafetyBoundariesTests.test_disconnect_after_meta_keeps_committed_outbox) ... ok
+test_disconnect_is_recorded_in_trace (test_safety_boundaries.SafetyBoundariesTests.test_disconnect_is_recorded_in_trace) ... ok
+test_enqueue_uses_persisted_risk_and_is_idempotent (test_safety_boundaries.SafetyBoundariesTests.test_enqueue_uses_persisted_risk_and_is_idempotent) ... ok
+test_excel_retry_after_file_written_database_rollback_does_not_duplicate_row (test_safety_boundaries.SafetyBoundariesTests.test_excel_retry_after_file_written_database_rollback_does_not_duplicate_row) ... ok
+test_forged_actor_student_and_other_owner_are_denied (test_safety_boundaries.SafetyBoundariesTests.test_forged_actor_student_and_other_owner_are_denied) ... ok
+test_high_risk_final_template_is_checked_and_never_calls_generation (test_safety_boundaries.SafetyBoundariesTests.test_high_risk_final_template_is_checked_and_never_calls_generation) ... ok
+test_mcp_mutations_refuse_untrusted_actor (test_safety_boundaries.SafetyBoundariesTests.test_mcp_mutations_refuse_untrusted_actor) ... ok
+test_mixed_general_question_and_risk_is_high_without_rag (test_safety_boundaries.SafetyBoundariesTests.test_mixed_general_question_and_risk_is_high_without_rag) ... ok
+test_model_stream_failure_preserves_outbox (test_safety_boundaries.SafetyBoundariesTests.test_model_stream_failure_preserves_outbox) ... Response generation failed: TimeoutError
+ok
+test_normal_sse_yields_provider_chunks_before_generation_finishes (test_safety_boundaries.SafetyBoundariesTests.test_normal_sse_yields_provider_chunks_before_generation_finishes) ... ok
+test_optional_rag_skills_and_cache_cannot_block_high_risk_outbox (test_safety_boundaries.SafetyBoundariesTests.test_optional_rag_skills_and_cache_cannot_block_high_risk_outbox) ... Optional memory cache unavailable: RuntimeError
+Optional memory cache unavailable: RuntimeError
+ok
+test_password_compatibility_and_successful_login_upgrade (test_safety_boundaries.SafetyBoundariesTests.test_password_compatibility_and_successful_login_upgrade) ... ok
+test_queue_policy_refusal_and_success_are_audited (test_safety_boundaries.SafetyBoundariesTests.test_queue_policy_refusal_and_success_are_audited) ... ok
+test_recovery_does_not_reclaim_fresh_running_job (test_safety_boundaries.SafetyBoundariesTests.test_recovery_does_not_reclaim_fresh_running_job) ... ok
+test_report_and_outbox_rollback_together (test_safety_boundaries.SafetyBoundariesTests.test_report_and_outbox_rollback_together) ... ok
+test_review_refusal_never_emits_candidate_or_fallback (test_safety_boundaries.SafetyBoundariesTests.test_review_refusal_never_emits_candidate_or_fallback) ... ok
+test_review_timeout_never_emits_unapproved_text (test_safety_boundaries.SafetyBoundariesTests.test_review_timeout_never_emits_unapproved_text) ... ok
+test_tool_failure_retries_then_succeeds_without_real_email (test_safety_boundaries.SafetyBoundariesTests.test_tool_failure_retries_then_succeeds_without_real_email) ... ok
+test_unicode_or_whitespace_obfuscation_does_not_bypass_risk_rule (test_safety_boundaries.SafetyBoundariesTests.test_unicode_or_whitespace_obfuscation_does_not_bypass_risk_rule) ... ok
+test_skill_registry_loads_valid_skill (test_skills.SkillRegistryTests.test_skill_registry_loads_valid_skill) ... ok
+test_skill_requires_frontmatter (test_skills.SkillRegistryTests.test_skill_requires_frontmatter) ... ok
+test_skill_status_reports_warnings (test_skills.SkillRegistryTests.test_skill_status_reports_warnings) ... ok
+test_artifact_schema_rejects_wrong_payload_and_missing_provenance (test_state_contracts.StateContractTests.test_artifact_schema_rejects_wrong_payload_and_missing_provenance) ... ok
+test_custom_and_langgraph_have_matching_safety_and_artifact_contracts (test_state_contracts.StateContractTests.test_custom_and_langgraph_have_matching_safety_and_artifact_contracts) ... ok
+test_nodes_return_updates_without_mutating_incoming_state (test_state_contracts.StateContractTests.test_nodes_return_updates_without_mutating_incoming_state) ... ok
+test_trace_contains_refs_and_review_but_no_full_sensitive_transcript (test_state_contracts.StateContractTests.test_trace_contains_refs_and_review_but_no_full_sensitive_transcript) ... ok
+test_context_schema_requires_evidence_without_weakening_executor (test_structured_actions.StructuredActionTests.test_context_schema_requires_evidence_without_weakening_executor) ... ok
+test_decoder_schema_rejects_legacy_nested_ask_and_unknown_tools (test_structured_actions.StructuredActionTests.test_decoder_schema_rejects_legacy_nested_ask_and_unknown_tools) ... ok
+test_native_decoding_never_replaces_tool_authorization (test_structured_actions.StructuredActionTests.test_native_decoding_never_replaces_tool_authorization) ... ok
+test_native_schema_timeout_and_actual_usage_are_forwarded (test_structured_actions.StructuredActionTests.test_native_schema_timeout_and_actual_usage_are_forwarded) ... ok
+test_normal_completion_does_not_force_json_format (test_structured_actions.StructuredActionTests.test_normal_completion_does_not_force_json_format) ... ok
+test_prompt_compatibility_switch_does_not_remove_validation (test_structured_actions.StructuredActionTests.test_prompt_compatibility_switch_does_not_remove_validation) ... ok
+test_transport_failure_has_explicit_fallback_and_no_unstructured_retry (test_structured_actions.StructuredActionTests.test_transport_failure_has_explicit_fallback_and_no_unstructured_retry) ... ok
+test_high_risk_alert_is_allowed_only_for_high_risk (test_tool_governance.ToolGovernanceTests.test_high_risk_alert_is_allowed_only_for_high_risk) ... ok
+test_medium_case_create_is_allowed_but_low_is_blocked (test_tool_governance.ToolGovernanceTests.test_medium_case_create_is_allowed_but_low_is_blocked) ... ok
+test_unknown_tool_is_blocked (test_tool_governance.ToolGovernanceTests.test_unknown_tool_is_blocked) ... ok
+
+======================================================================
+ERROR: test_cache_initialization_failure_cannot_skip_normal_risk_assessment (test_safety_boundaries.SafetyBoundariesTests.test_cache_initialization_failure_cannot_skip_normal_risk_assessment)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Python-Project\HarborRelay\mindbridge-py\tests\test_safety_boundaries.py", line 501, in test_cache_initialization_failure_cannot_skip_normal_risk_assessment
+    result = runtime.run(
+             ^^^^^^^^^^^^
+  File "D:\Python-Project\HarborRelay\mindbridge-py\app\agents\runtime.py", line 122, in run
+    state = {**state, **self.execute_step(state, operation)}
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python-Project\HarborRelay\mindbridge-py\app\agents\runtime.py", line 168, in execute_step
+    if not getattr(self, f"{operation}_agent")(len(context.steps) + 1, context):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Python-Project\HarborRelay\mindbridge-py\app\agents\runtime.py", line 267, in memory_agent
+    self.db, self.memory, context.session.id, context.session.public_id,
+             ^^^^^^^^^^^
+  File "D:\Python-Project\HarborRelay\mindbridge-py\app\agents\runtime.py", line 116, in memory
+    self._memory = RedisShortTermMemoryStore(self.settings)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\xiaopeng\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\unittest\mock.py", line 1124, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\xiaopeng\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\unittest\mock.py", line 1128, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\xiaopeng\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\unittest\mock.py", line 1183, in _execute_mock_call
+    raise effect
+RuntimeError: cache unavailable
+
+----------------------------------------------------------------------
+Ran 114 tests in 4.969s
+
+FAILED (errors=1)

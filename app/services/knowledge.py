@@ -60,9 +60,9 @@ class KnowledgeService:
         vector_error = getattr(self.vector_store, "error", "")
         vector_available = self.vector_store.available
         if self.vector_store.can_embed:
-            if not self.vector_store.check_provider_available():
-                vector_available = False
-                vector_error = self.vector_store.error
+            provider_available = self.vector_store.check_provider_available()
+            vector_available = provider_available and self.vector_store.available
+            vector_error = self.vector_store.error
             try:
                 vector_chunks = self.vector_store.count()
             except Exception as exc:
@@ -96,6 +96,10 @@ class KnowledgeService:
         }
 
     def rebuild_vector_index(self) -> int:
+        with self.vector_store.write_lock():
+            return self._rebuild_vector_index_locked()
+
+    def _rebuild_vector_index_locked(self) -> int:
         if not self.vector_store.can_embed:
             raise RuntimeError(getattr(self.vector_store, "error", "") or "Chroma vector retrieval is unavailable.")
         rows = (
@@ -128,6 +132,10 @@ class KnowledgeService:
         return snapshot
 
     def ingest(self, source: str, content: str) -> int:
+        with self.vector_store.write_lock():
+            return self._ingest_locked(source, content)
+
+    def _ingest_locked(self, source: str, content: str) -> int:
         chunks = chunk_text(content, self.settings.knowledge_chunk_size, self.settings.knowledge_chunk_overlap)
         self._delete_vector_source(source)
         self.db.query(KnowledgeChunk).filter(KnowledgeChunk.source == source).delete()
@@ -496,7 +504,7 @@ def serialize_embedding(embedding: list[float], provider: str, model: str) -> st
         "dimension": len(embedding),
         "vector": [float(value) for value in embedding],
     }
-    return json.dumps(payload, separators=(",", ":"))
+    return json.dumps(payload, separators=(",", ":"), allow_nan=False)
 
 
 def parse_embedding(
@@ -531,6 +539,8 @@ def parse_embedding(
     if not isinstance(data, list) or not data:
         return None
     if not all(isinstance(item, (int, float)) and not isinstance(item, bool) for item in data):
+        return None
+    if not all(math.isfinite(item) for item in data):
         return None
     return [float(item) for item in data]
 

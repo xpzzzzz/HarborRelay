@@ -1,0 +1,89 @@
+{
+  "checks": [
+    {
+      "command": [
+        "uvx",
+        "--from",
+        "ruff==0.11.13",
+        "ruff",
+        "check",
+        "--select",
+        "F",
+        "--target-version",
+        "py311",
+        "app/services/memory.py",
+        "app/services/vector_snapshots.py",
+        "app/services/vector_store.py",
+        "app/services/knowledge.py",
+        "app/services/tools.py",
+        "app/agents/runtime.py",
+        "app/agents/harness.py",
+        "app/harness/runner.py",
+        "app/evaluation/infrastructure_probe.py",
+        "app/evaluation/mysql_runner.py",
+        "app/evaluation/smtp_sandbox.py",
+        "tests/test_memory_coherence.py",
+        "tests/test_smtp_sandbox.py",
+        "tests/test_vector_snapshots.py"
+      ],
+      "returncode": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\Python-Project\\HarborRelay\\mindbridge-py\\.venv\\Scripts\\python.exe",
+        "-m",
+        "compileall",
+        "-q",
+        "app",
+        "tests"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "check",
+        "--python",
+        ".venv/Scripts/python.exe"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "Checked 68 packages in 28ms\nAll installed packages are compatible\n"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "core.autocrlf=false",
+        "diff",
+        "--check"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "D:\\Python-Project\\HarborRelay\\mindbridge-py\\.venv\\Scripts\\python.exe",
+        "-m",
+        "app.services.vector_snapshots",
+        "--help"
+      ],
+      "returncode": 0,
+      "stdout": "usage: vector_snapshots.py [-h] --snapshot SNAPSHOT --destination DESTINATION\n\nRestore a logical vector snapshot to a NEW directory; never switches the\nactive index.\n\noptions:\n  -h, --help            show this help message and exit\n  --snapshot SNAPSHOT\n  --destination DESTINATION\n",
+      "stderr": ""
+    }
+  ],
+  "known_preexisting_full_repo_lint_issue": {
+    "file": "app/services/model_assets.py",
+    "line": 20,
+    "code": "F541",
+    "identical_to_HEAD": true,
+    "full_repo_lint_passed": false
+  }
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 
 from app.core.enums import EmotionLabel, RiskLevel
@@ -31,6 +32,8 @@ class PsychologicalAssessmentService:
             data = json.loads(raw[start:end + 1] if start >= 0 and end > start else raw)
             emotion = EmotionLabel(data.get("emotion", "NORMAL").upper())
             score = float(data.get("emotionScore", score_for_emotion(emotion)))
+            if not math.isfinite(score) or not 0 <= score <= 5:
+                raise ValueError("Invalid assessment score")
             risk = RiskLevel(data.get("risk", risk_from_score(score).value).upper())
             confidence = max(0.0, min(1.0, float(data.get("confidence", 0.75))))
             score_risk = risk_from_score(score)
@@ -40,7 +43,11 @@ class PsychologicalAssessmentService:
                 risk = RiskLevel.HIGH
             return PsychologyAssessment(emotion, score, risk, confidence, data.get("summary", "模型评估结果"))
         except Exception:
-            return heuristic(text)
+            fallback = heuristic(text)
+            if fallback.risk == RiskLevel.LOW:
+                fallback.risk = RiskLevel.MEDIUM
+                fallback.summary = "评估不可用，需要进一步确认"
+            return fallback
 
 
 def heuristic(text: str) -> PsychologyAssessment:

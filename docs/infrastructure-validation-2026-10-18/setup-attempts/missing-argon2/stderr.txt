@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/app/evaluation/infrastructure_probe.py", line 636, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/app/evaluation/infrastructure_probe.py", line 632, in main
+    return 0 if evaluate(root, args.run_id, Path("/evidence")) else 1
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/app/evaluation/infrastructure_probe.py", line 181, in evaluate
+    from app.services.chat import ChatService
+  File "/workspace/app/services/chat.py", line 10, in <module>
+    from app.agents.harness import MindBridgeAgentHarness
+  File "/workspace/app/agents/harness.py", line 19, in <module>
+    from app.services.tool_queue import ToolQueueService
+  File "/workspace/app/services/tool_queue.py", line 18, in <module>
+    from app.services.tools import ToolOrchestrationService
+  File "/workspace/app/services/tools.py", line 16, in <module>
+    from app.core.security import authorize_case
+  File "/workspace/app/core/security.py", line 12, in <module>
+    from argon2 import PasswordHasher
+ModuleNotFoundError: No module named 'argon2'

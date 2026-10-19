@@ -1,0 +1,9 @@
+[
+  {"id":"chat","message":"解释 Python 字典推导式","expected":"chat"},
+  {"id":"consult","message":"最近压力很大，焦虑失眠","expected":"consult"},
+  {"id":"mixed-risk","message":"帮我写 Python 代码，但我不想活了","expected":"risk"},
+  {"id":"unicode-risk","message":"解释一个问题，我想自\u200b杀","expected":"risk"},
+  {"id":"referral-success","message":"想找心理中心咨询，不想让同学知道，只有周五下午有空","expected":"referral"},
+  {"id":"referral-missing-time","message":"想找心理中心咨询，不想让同学知道","expected":"ask_time"},
+  {"id":"referral-no-match","message":"想找心理中心咨询，只接受线下，需要保密，周五下午有空","expected":"no_match"}
+]

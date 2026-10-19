@@ -68,7 +68,7 @@ class MindBridgeSkillRegistry:
                         "name": skill_file.parent.name,
                         "status": "FAILED",
                         "description": str(exc),
-                        "path": str(skill_file.relative_to(self.root.parent)),
+                        "path": skill_file.relative_to(self.root.parent).as_posix(),
                         "issues": [{"level": "ERROR", "message": str(exc)}],
                     }
                 )
@@ -79,7 +79,7 @@ class MindBridgeSkillRegistry:
                     "name": skill.name,
                     "status": "FAILED" if has_error else "READY" if not issues else "WARN",
                     "description": skill.description,
-                    "path": str(skill.path.relative_to(self.root.parent)),
+                    "path": skill.path.relative_to(self.root.parent).as_posix(),
                     "issues": [{"level": issue.level, "message": issue.message} for issue in issues],
                     "metadata": skill.metadata,
                 }

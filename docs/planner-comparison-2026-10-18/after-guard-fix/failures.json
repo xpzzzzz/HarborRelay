@@ -1,0 +1,106 @@
+[
+  {
+    "arm": "mindbridge-qwen2.5-7b-ft:latest",
+    "case_index": 0,
+    "id": "available",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "time_budget"
+  },
+  {
+    "arm": "mindbridge-qwen2.5-7b-ft:latest",
+    "case_index": 1,
+    "id": "replan",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "time_budget"
+  },
+  {
+    "arm": "mindbridge-qwen2.5-7b-ft:latest",
+    "case_index": 2,
+    "id": "timeout_once",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "tool_timeout"
+  },
+  {
+    "arm": "mindbridge-qwen2.5-7b-ft:latest",
+    "case_index": 4,
+    "id": "strict_channel",
+    "repetition": 0,
+    "expected": "no_match",
+    "observed": "availability_unknown"
+  },
+  {
+    "arm": "mindbridge-qwen2.5-7b-ft:latest",
+    "case_index": 5,
+    "id": "remote_only",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "repeated_results"
+  },
+  {
+    "arm": "mindbridge-qwen2.5-7b-ft:latest",
+    "case_index": 7,
+    "id": "renamed",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "availability_unknown"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 0,
+    "id": "available",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "time_budget"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 1,
+    "id": "replan",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "time_budget"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 2,
+    "id": "timeout_once",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "time_budget"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 4,
+    "id": "strict_channel",
+    "repetition": 0,
+    "expected": "no_match",
+    "observed": "repeated_results"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 5,
+    "id": "remote_only",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "repeated_results"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 7,
+    "id": "renamed",
+    "repetition": 0,
+    "expected": "completed",
+    "observed": "repeated_results"
+  },
+  {
+    "arm": "deepseek-r1:1.5b",
+    "case_index": 8,
+    "id": "unknown",
+    "repetition": 0,
+    "expected": "availability_unknown",
+    "observed": "time_budget"
+  }
+]

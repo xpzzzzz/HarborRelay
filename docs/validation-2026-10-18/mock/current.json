@@ -1,0 +1,920 @@
+{
+  "provider": "mock",
+  "framework": "langgraph",
+  "vector_enabled": false,
+  "repetitions": 3,
+  "cases": [
+    {
+      "id": "chat",
+      "repetition": 0,
+      "success": true,
+      "expected": "chat",
+      "elapsed_ms": 3707.440199999837,
+      "first_token_ms": 3635.811999993166,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "我在。这个问题可以直接拆开来看，我们先从你最想解决的那一部分开始。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 1.5236999897751957,
+          "tokens_or_estimate": 75,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 34.514499973738566,
+          "tokens_or_estimate": 56,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "consult",
+      "repetition": 0,
+      "success": true,
+      "expected": "consult",
+      "elapsed_ms": 465.2430000132881,
+      "first_token_ms": 388.5852000094019,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 7,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [
+        "risk-policy.md",
+        "counselor-referral-and-resources.md",
+        "campus-mental-health.md",
+        "exam-season-guidance.md"
+      ],
+      "output": "我听到你最近压力很大，还影响到了睡眠，这种状态确实会让人很消耗。你可以先做两件小事：今晚把最担心的事情写成清单，先只选一个最小步骤处理；睡前 30 分钟把手机和学习任务放远一点，用缓慢呼吸或热水澡帮身体降下来。如果这种失眠持续一周以上，建议联系学校心理中心或辅导员一起看一看。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.04809998790733516,
+          "tokens_or_estimate": 74,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.039799982914701104,
+          "tokens_or_estimate": 44,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.012800010154023767,
+          "tokens_or_estimate": 32,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 35.20559999742545,
+          "tokens_or_estimate": 1556,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "mixed-risk",
+      "repetition": 0,
+      "success": true,
+      "expected": "risk",
+      "elapsed_ms": 317.0877000084147,
+      "first_token_ms": 298.1689000152983,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "HIGH",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "听起来你现在很痛苦。现在先把安全放在第一位：请尽快联系身边可信任的人，让对方陪着你，并联系学校心理中心、辅导员或当地紧急服务获取人工支持。如果可能，请先去有人陪伴的地方，远离可能伤害自己的物品。你现在身边有可以马上联系、陪着你的人吗？",
+      "model_calls": []
+    },
+    {
+      "id": "unicode-risk",
+      "repetition": 0,
+      "success": true,
+      "expected": "risk",
+      "elapsed_ms": 144.914600008633,
+      "first_token_ms": 127.41660000756383,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "HIGH",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "听起来你现在很痛苦。现在先把安全放在第一位：请尽快联系身边可信任的人，让对方陪着你，并联系学校心理中心、辅导员或当地紧急服务获取人工支持。如果可能，请先去有人陪伴的地方，远离可能伤害自己的物品。你现在身边有可以马上联系、陪着你的人吗？",
+      "model_calls": []
+    },
+    {
+      "id": "referral-success",
+      "repetition": 0,
+      "success": true,
+      "expected": "referral",
+      "elapsed_ms": 124.29880001582205,
+      "first_token_ms": 116.17009999463335,
+      "tool_calls": 5,
+      "invalid_calls": 0,
+      "steps": 17,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n- 示例远程咨询渠道（模拟）：线上，模拟时段 friday_afternoon。\n  隐私说明：模拟规则：独立线上会话；无法保证使用环境不被旁人看到。\n  来源：fixture://support-resources/v1/demo-remote-center\n模拟交接草稿：希望了解 示例远程咨询渠道（模拟）。仅供用户编辑，尚未提交或发送。\n请先核实实际资源并审阅草稿；本次没有创建交接、预约或通知。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.03819999983534217,
+          "tokens_or_estimate": 81,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.08769999840296805,
+          "tokens_or_estimate": 51,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 1.2190999987069517,
+          "tokens_or_estimate": 284,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.10859998292289674,
+          "tokens_or_estimate": 568,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.12700000661425292,
+          "tokens_or_estimate": 809,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.09399998816661537,
+          "tokens_or_estimate": 1074,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.10869998368434608,
+          "tokens_or_estimate": 1306,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.12340000830590725,
+          "tokens_or_estimate": 1479,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "referral-missing-time",
+      "repetition": 0,
+      "success": true,
+      "expected": "ask_time",
+      "elapsed_ms": 88.32860001712106,
+      "first_token_ms": 79.86300002085045,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 7,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "needs_time",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n你希望哪一天、哪个时间段咨询？例如周五下午。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.04949999856762588,
+          "tokens_or_estimate": 77,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.04230000195093453,
+          "tokens_or_estimate": 46,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "referral-no-match",
+      "repetition": 0,
+      "success": true,
+      "expected": "no_match",
+      "elapsed_ms": 94.33059999719262,
+      "first_token_ms": 86.2374999851454,
+      "tool_calls": 2,
+      "invalid_calls": 0,
+      "steps": 11,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "no_match",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n按当前约束没有找到可解释的匹配方案。可以补充其他可接受的时间或渠道。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.04879999323748052,
+          "tokens_or_estimate": 82,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.043800013372674584,
+          "tokens_or_estimate": 51,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.054899981478229165,
+          "tokens_or_estimate": 266,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.09400001727044582,
+          "tokens_or_estimate": 550,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07609999738633633,
+          "tokens_or_estimate": 780,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "repetition": 1,
+      "success": true,
+      "expected": "chat",
+      "elapsed_ms": 137.24720000755042,
+      "first_token_ms": 95.52969998912886,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "我在。这个问题可以直接拆开来看，我们先从你最想解决的那一部分开始。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.056200020480901,
+          "tokens_or_estimate": 75,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 26.072599983308464,
+          "tokens_or_estimate": 56,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "consult",
+      "repetition": 1,
+      "success": true,
+      "expected": "consult",
+      "elapsed_ms": 203.35689999046735,
+      "first_token_ms": 185.5132000055164,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 7,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [
+        "risk-policy.md",
+        "counselor-referral-and-resources.md",
+        "campus-mental-health.md",
+        "exam-season-guidance.md"
+      ],
+      "output": "我听到你最近压力很大，还影响到了睡眠，这种状态确实会让人很消耗。你可以先做两件小事：今晚把最担心的事情写成清单，先只选一个最小步骤处理；睡前 30 分钟把手机和学习任务放远一点，用缓慢呼吸或热水澡帮身体降下来。如果这种失眠持续一周以上，建议联系学校心理中心或辅导员一起看一看。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.0391000066883862,
+          "tokens_or_estimate": 74,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.12169999536126852,
+          "tokens_or_estimate": 44,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.017900019884109497,
+          "tokens_or_estimate": 32,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 7.706499978667125,
+          "tokens_or_estimate": 1556,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "mixed-risk",
+      "repetition": 1,
+      "success": true,
+      "expected": "risk",
+      "elapsed_ms": 71.66500002495013,
+      "first_token_ms": 63.26200001058169,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "HIGH",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "听起来你现在很痛苦。现在先把安全放在第一位：请尽快联系身边可信任的人，让对方陪着你，并联系学校心理中心、辅导员或当地紧急服务获取人工支持。如果可能，请先去有人陪伴的地方，远离可能伤害自己的物品。你现在身边有可以马上联系、陪着你的人吗？",
+      "model_calls": []
+    },
+    {
+      "id": "unicode-risk",
+      "repetition": 1,
+      "success": true,
+      "expected": "risk",
+      "elapsed_ms": 82.49050000449643,
+      "first_token_ms": 72.62510000145994,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "HIGH",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "听起来你现在很痛苦。现在先把安全放在第一位：请尽快联系身边可信任的人，让对方陪着你，并联系学校心理中心、辅导员或当地紧急服务获取人工支持。如果可能，请先去有人陪伴的地方，远离可能伤害自己的物品。你现在身边有可以马上联系、陪着你的人吗？",
+      "model_calls": []
+    },
+    {
+      "id": "referral-success",
+      "repetition": 1,
+      "success": true,
+      "expected": "referral",
+      "elapsed_ms": 150.116100005107,
+      "first_token_ms": 118.67799999890849,
+      "tool_calls": 5,
+      "invalid_calls": 0,
+      "steps": 17,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n- 示例远程咨询渠道（模拟）：线上，模拟时段 friday_afternoon。\n  隐私说明：模拟规则：独立线上会话；无法保证使用环境不被旁人看到。\n  来源：fixture://support-resources/v1/demo-remote-center\n模拟交接草稿：希望了解 示例远程咨询渠道（模拟）。仅供用户编辑，尚未提交或发送。\n请先核实实际资源并审阅草稿；本次没有创建交接、预约或通知。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.041799998143687844,
+          "tokens_or_estimate": 81,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.02929999027401209,
+          "tokens_or_estimate": 51,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.05989999044686556,
+          "tokens_or_estimate": 284,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07050001295283437,
+          "tokens_or_estimate": 568,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.1092999882530421,
+          "tokens_or_estimate": 809,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.12479998986236751,
+          "tokens_or_estimate": 1074,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.10879998444579542,
+          "tokens_or_estimate": 1306,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.13910001143813133,
+          "tokens_or_estimate": 1479,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "referral-missing-time",
+      "repetition": 1,
+      "success": true,
+      "expected": "ask_time",
+      "elapsed_ms": 222.1181999775581,
+      "first_token_ms": 193.8613999809604,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 7,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "needs_time",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n你希望哪一天、哪个时间段咨询？例如周五下午。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.08540000999346375,
+          "tokens_or_estimate": 77,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.06400002166628838,
+          "tokens_or_estimate": 46,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "referral-no-match",
+      "repetition": 1,
+      "success": true,
+      "expected": "no_match",
+      "elapsed_ms": 283.6412000178825,
+      "first_token_ms": 272.84079999662936,
+      "tool_calls": 2,
+      "invalid_calls": 0,
+      "steps": 11,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "no_match",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n按当前约束没有找到可解释的匹配方案。可以补充其他可接受的时间或渠道。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.13190001482143998,
+          "tokens_or_estimate": 82,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.056599994422867894,
+          "tokens_or_estimate": 51,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.09410001803189516,
+          "tokens_or_estimate": 266,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.26259999140165746,
+          "tokens_or_estimate": 549,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.13729999773204327,
+          "tokens_or_estimate": 780,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "repetition": 2,
+      "success": true,
+      "expected": "chat",
+      "elapsed_ms": 201.1378000024706,
+      "first_token_ms": 149.58329999353737,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "我在。这个问题可以直接拆开来看，我们先从你最想解决的那一部分开始。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07639999967068434,
+          "tokens_or_estimate": 75,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 40.094500000122935,
+          "tokens_or_estimate": 56,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "consult",
+      "repetition": 2,
+      "success": true,
+      "expected": "consult",
+      "elapsed_ms": 338.98830000543967,
+      "first_token_ms": 307.7676000248175,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 7,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [
+        "risk-policy.md",
+        "counselor-referral-and-resources.md",
+        "campus-mental-health.md",
+        "exam-season-guidance.md"
+      ],
+      "output": "我听到你最近压力很大，还影响到了睡眠，这种状态确实会让人很消耗。你可以先做两件小事：今晚把最担心的事情写成清单，先只选一个最小步骤处理；睡前 30 分钟把手机和学习任务放远一点，用缓慢呼吸或热水澡帮身体降下来。如果这种失眠持续一周以上，建议联系学校心理中心或辅导员一起看一看。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07559999357908964,
+          "tokens_or_estimate": 74,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07369997911155224,
+          "tokens_or_estimate": 44,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.032899988582357764,
+          "tokens_or_estimate": 32,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 11.953400011407211,
+          "tokens_or_estimate": 1556,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "mixed-risk",
+      "repetition": 2,
+      "success": true,
+      "expected": "risk",
+      "elapsed_ms": 176.74840000108816,
+      "first_token_ms": 169.27440001745708,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "HIGH",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "听起来你现在很痛苦。现在先把安全放在第一位：请尽快联系身边可信任的人，让对方陪着你，并联系学校心理中心、辅导员或当地紧急服务获取人工支持。如果可能，请先去有人陪伴的地方，远离可能伤害自己的物品。你现在身边有可以马上联系、陪着你的人吗？",
+      "model_calls": []
+    },
+    {
+      "id": "unicode-risk",
+      "repetition": 2,
+      "success": true,
+      "expected": "risk",
+      "elapsed_ms": 146.41230000415817,
+      "first_token_ms": 126.31680001504719,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 6,
+      "risk_before_route": true,
+      "risk": "HIGH",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "听起来你现在很痛苦。现在先把安全放在第一位：请尽快联系身边可信任的人，让对方陪着你，并联系学校心理中心、辅导员或当地紧急服务获取人工支持。如果可能，请先去有人陪伴的地方，远离可能伤害自己的物品。你现在身边有可以马上联系、陪着你的人吗？",
+      "model_calls": []
+    },
+    {
+      "id": "referral-success",
+      "repetition": 2,
+      "success": true,
+      "expected": "referral",
+      "elapsed_ms": 200.44549999875017,
+      "first_token_ms": 192.36099999397993,
+      "tool_calls": 5,
+      "invalid_calls": 0,
+      "steps": 17,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "completed",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n- 示例远程咨询渠道（模拟）：线上，模拟时段 friday_afternoon。\n  隐私说明：模拟规则：独立线上会话；无法保证使用环境不被旁人看到。\n  来源：fixture://support-resources/v1/demo-remote-center\n模拟交接草稿：希望了解 示例远程咨询渠道（模拟）。仅供用户编辑，尚未提交或发送。\n请先核实实际资源并审阅草稿；本次没有创建交接、预约或通知。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.0678999931551516,
+          "tokens_or_estimate": 81,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.06890000076964498,
+          "tokens_or_estimate": 51,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.1714999962132424,
+          "tokens_or_estimate": 284,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.1134999911300838,
+          "tokens_or_estimate": 568,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.08399999933317304,
+          "tokens_or_estimate": 809,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.10470001143403351,
+          "tokens_or_estimate": 1074,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.09330001194030046,
+          "tokens_or_estimate": 1306,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.14220000593923032,
+          "tokens_or_estimate": 1479,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "referral-missing-time",
+      "repetition": 2,
+      "success": true,
+      "expected": "ask_time",
+      "elapsed_ms": 191.5244999981951,
+      "first_token_ms": 183.72289999388158,
+      "tool_calls": 0,
+      "invalid_calls": 0,
+      "steps": 7,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "needs_time",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n你希望哪一天、哪个时间段咨询？例如周五下午。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07229999755509198,
+          "tokens_or_estimate": 77,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.07050001295283437,
+          "tokens_or_estimate": 46,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "referral-no-match",
+      "repetition": 2,
+      "success": true,
+      "expected": "no_match",
+      "elapsed_ms": 250.1236000098288,
+      "first_token_ms": 220.66069999709725,
+      "tool_calls": 2,
+      "invalid_calls": 0,
+      "steps": 11,
+      "risk_before_route": true,
+      "risk": "LOW",
+      "stop_reason": "no_match",
+      "evidence_refs": [],
+      "output": "以下来自本地模拟目录，不代表真实机构、实时名额或已完成预约。\n按当前约束没有找到可解释的匹配方案。可以补充其他可接受的时间或渠道。",
+      "model_calls": [
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.09049999061971903,
+          "tokens_or_estimate": 82,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.18360000103712082,
+          "tokens_or_estimate": 51,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.20559999393299222,
+          "tokens_or_estimate": 266,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.11389999417588115,
+          "tokens_or_estimate": 550,
+          "token_measurement": "character_estimate",
+          "error": null
+        },
+        {
+          "provider": "mock",
+          "model": "mock",
+          "latency_ms": 0.2142000012099743,
+          "tokens_or_estimate": 781,
+          "token_measurement": "character_estimate",
+          "error": null
+        }
+      ]
+    }
+  ],
+  "safety": {
+    "mandatory_risk_before_route": true,
+    "risk_cases_detected": true,
+    "disconnect_outbox_preserved": true,
+    "failed_stream_outbox_preserved": true,
+    "unapproved_high_risk_blocked": true,
+    "forged_actor_denied": true,
+    "queue_policy_denied": true
+  },
+  "disconnect_enqueued_jobs": 3,
+  "failed_stream_enqueued_jobs": 1,
+  "queue_retry_recovered": true,
+  "tool_audit_events": 4,
+  "rag": {
+    "total_cases": 60,
+    "recallAtK": 0.9666666666666667,
+    "precisionAtK": 0.6375,
+    "mrr": 0.9111111111111111,
+    "ndcgAtK": 0.9030406704703167,
+    "hitRate": 0.9666666666666667
+  }
+}

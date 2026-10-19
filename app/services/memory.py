@@ -5,7 +5,10 @@ import json
 import logging
 from datetime import datetime
 from importlib import import_module
+from time import monotonic
 from typing import Protocol
+
+from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.models.entities import ChatMessage
@@ -26,59 +29,81 @@ class RedisShortTermMemoryStore:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.privacy = PrivacySanitizer()
+        self._retry_after = 0.0
         self.client = self._connect()
 
-    def load_recent(self, session_public_id: str) -> list[AiMessage]:
-        if self.client is None:
+    def load_recent(self, session_public_id: str, *, expected_message_ids: list[int] | None = None) -> list[AiMessage]:
+        if not self._available():
             return []
         try:
-            return self._read(session_public_id, self.settings.redis_memory_max_messages)
+            return self._read(session_public_id, self.settings.redis_memory_max_messages, expected_message_ids)
         except Exception as exc:
+            self._defer_retry()
             logger.warning("Redis memory read unavailable: %s", exc)
             return []
 
     def messages_from_rows(self, rows: list[ChatMessage]) -> list[AiMessage]:
         return [self._message_from_row(row) for row in rows]
 
-    def append(self, session_public_id: str, role: str, content: str) -> None:
-        if self.client is None:
+    def append(self, session_public_id: str, role: str, content: str, *, message_id: int | None = None) -> None:
+        if not self._available():
             return
         key = self._key(session_public_id)
-        payload = self._serialize(role, content)
+        payload = self._serialize(role, content, message_id)
         try:
-            self.client.rpush(key, payload)
-            self.client.ltrim(key, -self.settings.redis_memory_max_messages, -1)
-            self.client.expire(key, self.settings.redis_memory_ttl_seconds)
+            with self.client.pipeline(transaction=True) as pipe:
+                pipe.rpush(key, payload)
+                pipe.ltrim(key, -self.settings.redis_memory_max_messages, -1)
+                pipe.expire(key, self.settings.redis_memory_ttl_seconds)
+                pipe.execute()
         except Exception as exc:
+            self._defer_retry()
             logger.warning("Redis memory append unavailable: %s", exc)
 
-    def replace(self, session_public_id: str, messages: list[AiMessage]) -> None:
-        if self.client is None:
+    def replace(self, session_public_id: str, messages: list[AiMessage], *, message_ids: list[int] | None = None) -> None:
+        if message_ids is not None and len(message_ids) != len(messages):
+            raise ValueError("Cache message IDs must match the message window")
+        if not self._available():
             return
         key = self._key(session_public_id)
-        pipe = self.client.pipeline()
-        pipe.delete(key)
-        if messages:
-            pipe.rpush(key, *[self._serialize(message.role, message.content) for message in messages])
-            pipe.ltrim(key, -self.settings.redis_memory_max_messages, -1)
-            pipe.expire(key, self.settings.redis_memory_ttl_seconds)
         try:
-            pipe.execute()
+            with self.client.pipeline(transaction=True) as pipe:
+                pipe.delete(key)
+                if messages:
+                    ids = message_ids if message_ids is not None else [None] * len(messages)
+                    pipe.rpush(key, *[self._serialize(message.role, message.content, identifier) for message, identifier in zip(messages, ids)])
+                    pipe.ltrim(key, -self.settings.redis_memory_max_messages, -1)
+                    pipe.expire(key, self.settings.redis_memory_ttl_seconds)
+                pipe.execute()
         except Exception as exc:
+            self._defer_retry()
             logger.warning("Redis memory replace unavailable: %s", exc)
 
-    def _read(self, session_public_id: str, limit: int) -> list[AiMessage]:
+    def _read(self, session_public_id: str, limit: int, expected_message_ids: list[int] | None = None) -> list[AiMessage]:
         raw_items = self.client.lrange(self._key(session_public_id), -limit, -1)
         messages = []
+        identifiers = []
         for raw in raw_items:
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError:
                 continue
-            role = str(data.get("role", "")).lower()
-            content = str(data.get("content", ""))
-            if role and content:
+            if not isinstance(data, dict):
+                continue
+            role = data.get("role")
+            content = data.get("content")
+            if not isinstance(role, str) or not isinstance(content, str):
+                continue
+            role = role.lower()
+            # Redis holds conversation data, never privileged prompt instructions.
+            if role in {"user", "assistant"} and content:
                 messages.append(AiMessage(role=role, content=self.privacy.sanitize(content)))
+                identifier = data.get("messageId")
+                identifiers.append(identifier if type(identifier) is int and identifier > 0 else None)
+        # Compare the entire DB-visible window, not just the last ID: a missing
+        # middle append, duplicate EXEC or out-of-order writer must be a miss.
+        if expected_message_ids is not None and identifiers != expected_message_ids:
+            return []
         return messages
 
     def _connect(self):
@@ -95,25 +120,66 @@ class RedisShortTermMemoryStore:
         try:
             client.ping()
         except Exception as exc:
-            logger.warning("Redis memory disabled: %s", exc)
-            return None
+            self._defer_retry()
+            logger.warning("Redis memory initially unavailable; later calls may reconnect: %s", exc)
         return client
+
+    def _available(self) -> bool:
+        return self.client is not None and monotonic() >= getattr(self, "_retry_after", 0)
+
+    def _defer_retry(self) -> None:
+        # Keep a failed cache from imposing repeated socket waits in the same turn.
+        self._retry_after = monotonic() + self.settings.redis_socket_timeout_seconds
 
     def _message_from_row(self, row: ChatMessage) -> AiMessage:
         return AiMessage(role=row.role.lower(), content=self.privacy.sanitize(row.content))
 
-    def _serialize(self, role: str, content: str) -> str:
+    def _serialize(self, role: str, content: str, message_id: int | None = None) -> str:
         return json.dumps(
             {
                 "role": role.lower(),
                 "content": self.privacy.sanitize(content),
                 "createdAt": datetime.utcnow().isoformat(),
+                "messageId": message_id,
             },
             ensure_ascii=False,
         )
 
     def _key(self, session_public_id: str) -> str:
         return f"mindbridge:short-term-memory:{session_public_id}"
+
+
+def load_committed_history(db: Session, memory, session_id: int, public_id: str, limit: int) -> tuple[list[AiMessage], str]:
+    """Use Redis only when it matches this transaction's committed message window.
+
+    Messages are append-only through the public API. A bounded ID query avoids
+    fetching Text columns on cache hits. No cache/database distributed transaction
+    is required: races can cause another miss, never authorize stale cache data.
+    """
+    identifiers = [row[0] for row in (
+        db.query(ChatMessage.id)
+        .filter(ChatMessage.session_id == session_id,
+                ChatMessage.role.in_(["USER", "ASSISTANT", "user", "assistant"]),
+                ChatMessage.content != "")
+        .order_by(ChatMessage.id.desc()).limit(max(1, limit)).all()
+    )][::-1]
+    if not identifiers:
+        return [], "database_empty"
+    try:
+        history = memory.load_recent(public_id, expected_message_ids=identifiers)
+    except Exception:
+        history = []
+    if history:
+        return history, "redis_verified"
+    rows = (db.query(ChatMessage).filter(ChatMessage.session_id == session_id, ChatMessage.id.in_(identifiers))
+            .order_by(ChatMessage.id.asc()).all())
+    privacy = PrivacySanitizer()
+    history = [AiMessage(role=row.role.lower(), content=privacy.sanitize(row.content)) for row in rows]
+    try:
+        memory.replace(public_id, history, message_ids=[row.id for row in rows])
+    except Exception:
+        pass  # DB history is already available; Redis remains optional.
+    return history, "mysql_seeded"  # Preserve the historical trace label (also used with SQLite).
 
 
 def compact_history_for_prompt(
