@@ -49,4 +49,3 @@ class RiskCaseStatus(str, Enum):
     OPEN = "OPEN"
     ALERT_SENT = "ALERT_SENT"
     ACKNOWLEDGED = "ACKNOWLEDGED"
-    CLOSED = "CLOSED"

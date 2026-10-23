@@ -14,7 +14,7 @@ class McpToolError(RuntimeError):
     pass
 
 
-class MindBridgeMcpToolClient:
+class HarborRelayMcpToolClient:
     def __init__(self, settings: Settings):
         self.settings = settings
 
@@ -22,17 +22,17 @@ class MindBridgeMcpToolClient:
         try:
             async with self._session() as session:
                 results = [
-                    await self._call_tool(session, "mindbridge_excel_report", {"report_id": report_id}),
+                    await self._call_tool(session, "harborrelay_excel_report", {"report_id": report_id}),
                 ]
                 case_id = None
                 if risk_level in {RiskLevel.MEDIUM.value, RiskLevel.HIGH.value}:
-                    case_result = await self._call_tool(session, "mindbridge_case_create", {"report_id": report_id})
+                    case_result = await self._call_tool(session, "harborrelay_case_create", {"report_id": report_id})
                     results.append(case_result)
                     case_id = self._extract_case_id(case_result)
                 if risk_level == RiskLevel.HIGH.value:
                     if case_id is None:
                         raise McpToolError("高风险报告已创建，但无法解析 caseId，预警未发送")
-                    results.append(await self._call_tool(session, "mindbridge_alert_send", {"case_id": case_id}))
+                    results.append(await self._call_tool(session, "harborrelay_alert_send", {"case_id": case_id}))
                 return results
         except McpToolError:
             raise

@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from app.services.skills import MindBridgeSkillRegistry, SkillLoadError
+from app.services.skills import HarborRelaySkillRegistry, SkillLoadError
 
 
 def write_skill(root: Path, name: str, text: str) -> None:
@@ -21,7 +21,7 @@ class SkillRegistryTests(unittest.TestCase):
                 """---\nname: demo_skill\ndescription: Use for a clear and sufficiently described demo scenario.\n---\n\n# Demo\n\n## Workflow\n\n- Do one thing.\n""",
             )
 
-            skill = MindBridgeSkillRegistry(root).get_required("demo_skill")
+            skill = HarborRelaySkillRegistry(root).get_required("demo_skill")
 
             self.assertEqual(skill.name, "demo_skill")
             self.assertEqual(skill.validation_issues(), [])
@@ -35,7 +35,7 @@ class SkillRegistryTests(unittest.TestCase):
                 """---\nname: demo_skill\ndescription: short\n---\n\n# Demo\n""",
             )
 
-            status = MindBridgeSkillRegistry(root).status_items()[0]
+            status = HarborRelaySkillRegistry(root).status_items()[0]
 
             self.assertEqual(status["status"], "WARN")
             self.assertTrue(status["issues"])
@@ -46,7 +46,7 @@ class SkillRegistryTests(unittest.TestCase):
             write_skill(root, "bad", "# Missing metadata")
 
             with self.assertRaises(SkillLoadError):
-                MindBridgeSkillRegistry(root).get_required("bad")
+                HarborRelaySkillRegistry(root).get_required("bad")
 
 
 if __name__ == "__main__":

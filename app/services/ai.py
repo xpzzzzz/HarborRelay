@@ -167,13 +167,13 @@ class AiClient:
             return "CHAT"
         if "high_risk_safety_plan" in system and has_high_risk_signal(last):
             return "我听到你现在已经痛苦到觉得撑不下去了。现在最重要的是先让你不要一个人扛：请马上联系身边可信任的人，或者直接联系辅导员、学校心理中心、校园保卫/当地紧急服务。接下来 10 分钟，请先把自己移到有人在的地方，并把可能伤害自己的东西放远一点。如果可以，回我一句：你现在身边有没有可以马上联系或走过去找的人？"
-        if "当前由 CounselorAgent" in system:
+        if "当前由 ResponseAgent 以 support mode" in system:
             return "我听到你最近压力很大，还影响到了睡眠，这种状态确实会让人很消耗。你可以先做两件小事：今晚把最担心的事情写成清单，先只选一个最小步骤处理；睡前 30 分钟把手机和学习任务放远一点，用缓慢呼吸或热水澡帮身体降下来。如果这种失眠持续一周以上，建议联系学校心理中心或辅导员一起看一看。"
-        if "当前由 CompanionAgent" in system:
+        if "当前由 ResponseAgent 以 normal_chat mode" in system:
             return "我在。这个问题可以直接拆开来看，我们先从你最想解决的那一部分开始。"
-        if "KnowledgeAgent" in system and "SUFFICIENT" in system:
+        if "ContextAgent" in system and "SUFFICIENT" in system:
             return "SUFFICIENT"
-        if "KnowledgeAgent" in system:
+        if "ContextAgent" in system:
             return last[:40] or "校园心理支持"
         return "我在。先把你现在最具体的困扰说出来，我们可以一步一步拆开。如果情况已经影响安全，请马上联系身边可信任的人或学校心理中心。"
 

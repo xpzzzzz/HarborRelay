@@ -55,6 +55,14 @@ class ConversationResponse(BaseModel):
     messages: list[ConversationMessageResponse]
 
 
+class ChatSessionSummaryResponse(BaseModel):
+    sessionId: str
+    title: str
+    messageCount: int
+    createdAt: datetime
+    updatedAt: datetime
+
+
 class ToolRecordResponse(BaseModel):
     id: int
     reportId: int
@@ -86,14 +94,6 @@ class CaseNoteResponse(BaseModel):
     actor: str
     note: str
     createdAt: datetime
-
-
-class CaseActionRequest(BaseModel):
-    note: str = Field(default="", max_length=2000)
-
-
-class CaseNoteRequest(BaseModel):
-    note: str = Field(min_length=1, max_length=2000)
 
 
 class ToolJobResponse(BaseModel):

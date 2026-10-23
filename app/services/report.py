@@ -1,35 +1,10 @@
 from __future__ import annotations
 
-import json
-
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models.entities import (
-    AlertRecord,
-    AgentRunTrace,
-    CaseNote,
-    ChatMessage,
-    ChatSession,
-    DeadLetterRecord,
-    ExcelRecord,
-    PsychologicalReport,
-    RiskCase,
-    ToolAuditRecord,
-    ToolJob,
-    UserAccount,
-)
-from app.schemas.dtos import (
-    AgentRunTraceResponse,
-    CaseNoteResponse,
-    ConversationMessageResponse,
-    ConversationResponse,
-    DeadLetterResponse,
-    ReportResponse,
-    RiskCaseResponse,
-    ToolAuditResponse,
-    ToolJobResponse,
-    ToolRecordResponse,
-)
+from app.models.entities import AlertRecord, AgentRunTrace, CaseNote, ChatMessage, ChatSession, DeadLetterRecord, ExcelRecord, PsychologicalReport, RiskCase, ToolAuditRecord, ToolJob, UserAccount
+from app.schemas.dtos import AgentRunTraceResponse, CaseNoteResponse, ChatSessionSummaryResponse, ConversationMessageResponse, ConversationResponse, DeadLetterResponse, ReportResponse, RiskCaseResponse, ToolAuditResponse, ToolJobResponse, ToolRecordResponse
 
 
 class ReportService:
@@ -37,39 +12,20 @@ class ReportService:
         self.db = db
 
     def latest_reports(self, user_id: int | None = None) -> list[ReportResponse]:
-        query = self.db.query(PsychologicalReport).order_by(
-            PsychologicalReport.created_at.desc()
-        )
+        query = self.db.query(PsychologicalReport).order_by(PsychologicalReport.created_at.desc())
         if user_id is not None:
             query = query.filter(PsychologicalReport.user_id == user_id)
         return [self._report_response(item) for item in query.limit(100).all()]
 
     def excel_records(self) -> list[ToolRecordResponse]:
-        rows = (
-            self.db.query(ExcelRecord)
-            .order_by(ExcelRecord.created_at.desc())
-            .limit(100)
-            .all()
-        )
+        rows = self.db.query(ExcelRecord).order_by(ExcelRecord.created_at.desc()).limit(100).all()
         return [
-            ToolRecordResponse(
-                id=row.id,
-                reportId=row.report_id,
-                status=row.status,
-                message=row.message,
-                createdAt=row.created_at,
-                filePath=row.file_path,
-            )
+            ToolRecordResponse(id=row.id, reportId=row.report_id, status=row.status, message=row.message, createdAt=row.created_at, filePath=row.file_path)
             for row in rows
         ]
 
     def alert_records(self) -> list[ToolRecordResponse]:
-        rows = (
-            self.db.query(AlertRecord)
-            .order_by(AlertRecord.created_at.desc())
-            .limit(100)
-            .all()
-        )
+        rows = self.db.query(AlertRecord).order_by(AlertRecord.created_at.desc()).limit(100).all()
         return [
             ToolRecordResponse(
                 id=row.id,
@@ -84,55 +40,33 @@ class ReportService:
         ]
 
     def risk_cases(self) -> list[RiskCaseResponse]:
-        rows = (
-            self.db.query(RiskCase)
-            .order_by(RiskCase.updated_at.desc())
-            .limit(100)
-            .all()
-        )
-        return [self.case_response(row) for row in rows]
-
-    @staticmethod
-    def case_response(row: RiskCase) -> RiskCaseResponse:
-        return RiskCaseResponse(
-            id=row.id,
-            reportId=row.report_id,
-            riskLevel=row.risk_level,
-            status=row.status,
-            owner=row.owner,
-            summary=row.summary,
-            handoffSummary=row.handoff_summary,
-            acknowledgedBy=row.acknowledged_by,
-            acknowledgedAt=row.acknowledged_at,
-            createdAt=row.created_at,
-            updatedAt=row.updated_at,
-        )
-
-    def case_notes(self, case_id: int) -> list[CaseNoteResponse]:
-        rows = (
-            self.db.query(CaseNote)
-            .filter(CaseNote.case_id == case_id)
-            .order_by(CaseNote.created_at.asc())
-            .all()
-        )
+        rows = self.db.query(RiskCase).order_by(RiskCase.updated_at.desc()).limit(100).all()
         return [
-            CaseNoteResponse(
+            RiskCaseResponse(
                 id=row.id,
-                caseId=row.case_id,
-                actor=row.actor,
-                note=row.note,
+                reportId=row.report_id,
+                riskLevel=row.risk_level,
+                status=row.status,
+                owner=row.owner,
+                summary=row.summary,
+                handoffSummary=row.handoff_summary,
+                acknowledgedBy=row.acknowledged_by,
+                acknowledgedAt=row.acknowledged_at,
                 createdAt=row.created_at,
+                updatedAt=row.updated_at,
             )
             for row in rows
         ]
 
+    def case_notes(self, case_id: int) -> list[CaseNoteResponse]:
+        rows = self.db.query(CaseNote).filter(CaseNote.case_id == case_id).order_by(CaseNote.created_at.asc()).all()
+        return [
+            CaseNoteResponse(id=row.id, caseId=row.case_id, actor=row.actor, note=row.note, createdAt=row.created_at)
+            for row in rows
+        ]
+
     def tool_jobs(self) -> list[ToolJobResponse]:
-        rows = (
-            self.db.query(ToolJob)
-            .order_by(ToolJob.created_at.desc())
-            .limit(100)
-            .all()
-        )
+        rows = self.db.query(ToolJob).order_by(ToolJob.created_at.desc()).limit(100).all()
         return [
             ToolJobResponse(
                 id=row.id,
@@ -151,12 +85,7 @@ class ReportService:
         ]
 
     def dead_letters(self) -> list[DeadLetterResponse]:
-        rows = (
-            self.db.query(DeadLetterRecord)
-            .order_by(DeadLetterRecord.created_at.desc())
-            .limit(100)
-            .all()
-        )
+        rows = self.db.query(DeadLetterRecord).order_by(DeadLetterRecord.created_at.desc()).limit(100).all()
         return [
             DeadLetterResponse(
                 id=row.id,
@@ -170,14 +99,10 @@ class ReportService:
             for row in rows
         ]
 
+
     def agent_run_traces(self) -> list[AgentRunTraceResponse]:
-        rows = (
-            self.db.query(AgentRunTrace)
-            .order_by(AgentRunTrace.created_at.desc())
-            .limit(100)
-            .all()
-        )
-        responses: list[AgentRunTraceResponse] = []
+        rows = self.db.query(AgentRunTrace).order_by(AgentRunTrace.created_at.desc()).limit(100).all()
+        responses = []
         for row in rows:
             user = self.db.get(UserAccount, row.user_id)
             session = self.db.get(ChatSession, row.session_id)
@@ -202,12 +127,7 @@ class ReportService:
         return responses
 
     def tool_audits(self) -> list[ToolAuditResponse]:
-        rows = (
-            self.db.query(ToolAuditRecord)
-            .order_by(ToolAuditRecord.created_at.desc())
-            .limit(100)
-            .all()
-        )
+        rows = self.db.query(ToolAuditRecord).order_by(ToolAuditRecord.created_at.desc()).limit(100).all()
         return [
             ToolAuditResponse(
                 id=row.id,
@@ -226,36 +146,51 @@ class ReportService:
         ]
 
     def conversation(self, public_id: str) -> ConversationResponse:
+        session = self.db.query(ChatSession).filter(ChatSession.public_id == public_id).first()
+        if session is None:
+            raise ValueError("Session not found")
+        return self._conversation_response(session)
+
+    def student_sessions(self, user_id: int) -> list[ChatSessionSummaryResponse]:
+        rows = (
+            self.db.query(ChatSession, func.count(ChatMessage.id))
+            .outerjoin(ChatMessage, ChatMessage.session_id == ChatSession.id)
+            .filter(ChatSession.user_id == user_id)
+            .group_by(ChatSession.id)
+            .order_by(ChatSession.updated_at.desc(), ChatSession.id.desc())
+            .limit(100)
+            .all()
+        )
+        return [
+            ChatSessionSummaryResponse(
+                sessionId=session.public_id,
+                title=session.title,
+                messageCount=message_count,
+                createdAt=session.created_at,
+                updatedAt=session.updated_at,
+            )
+            for session, message_count in rows
+        ]
+
+    def student_conversation(self, public_id: str, user_id: int) -> ConversationResponse:
         session = (
             self.db.query(ChatSession)
-            .filter(ChatSession.public_id == public_id)
+            .filter(ChatSession.public_id == public_id, ChatSession.user_id == user_id)
             .first()
         )
         if session is None:
             raise ValueError("Session not found")
+        return self._conversation_response(session)
 
-        rows = (
-            self.db.query(ChatMessage)
-            .filter(ChatMessage.session_id == session.id)
-            .order_by(ChatMessage.created_at.asc())
-            .all()
-        )
+    def _conversation_response(self, session: ChatSession) -> ConversationResponse:
+        rows = self.db.query(ChatMessage).filter(ChatMessage.session_id == session.id).order_by(ChatMessage.created_at.asc()).all()
         return ConversationResponse(
             sessionId=session.public_id,
             title=session.title,
-            messages=[
-                ConversationMessageResponse(
-                    role=row.role,
-                    content=row.content,
-                    createdAt=row.created_at,
-                )
-                for row in rows
-            ],
+            messages=[ConversationMessageResponse(role=row.role, content=row.content, createdAt=row.created_at) for row in rows],
         )
 
-    def _report_response(
-        self, report: PsychologicalReport
-    ) -> ReportResponse:
+    def _report_response(self, report: PsychologicalReport) -> ReportResponse:
         user = self.db.get(UserAccount, report.user_id)
         session = self.db.get(ChatSession, report.session_id)
         return ReportResponse(
@@ -275,6 +210,8 @@ class ReportService:
 
 
 def _loads(raw: str, default):
+    import json
+
     try:
         return json.loads(raw or "")
     except Exception:

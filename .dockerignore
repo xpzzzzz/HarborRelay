@@ -1,5 +1,9 @@
 .git/
+.agents/
+.codex/
 .venv/
+.venv-win/
+.uploads/
 __pycache__/
 *.pyc
 .DS_Store

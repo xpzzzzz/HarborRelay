@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from sqlalchemy.orm import Session
 
 from app.agents.factory import create_agent_runtime
-from app.agents.runtime import AgentStep
+from app.agents.result import AgentStep
 from app.core.config import Settings
 from app.core.enums import IntentType, MessageRole
 from app.models.entities import ChatMessage, ChatSession, PsychologicalReport, UserAccount
 from app.schemas.dtos import AiMessage, ChatRequest
 from app.services.assessment import PsychologyAssessment
 from app.services.knowledge import SearchResult
-from app.services.mcp_client import MindBridgeMcpToolClient
+from app.services.mcp_client import HarborRelayMcpToolClient
 from app.services.memory import RedisShortTermMemoryStore
 from app.services.privacy import PrivacySanitizer
 from app.services.tool_queue import ToolQueueService
@@ -46,7 +46,7 @@ class AgentHarnessOutcome:
     trace_id: int | None
 
 
-class MindBridgeAgentHarness:
+class HarborRelayAgentHarness:
     """Runtime harness for one HarborRelay agent turn.
 
     The harness owns business orchestration around the agent runtime. HTTP/SSE
@@ -103,7 +103,7 @@ class MindBridgeAgentHarness:
         if self.settings.tool_queue_enabled:
             ToolQueueService(self.db, self.settings).enqueue_report(tool_plan.report_id, tool_plan.risk_level)
             return ["queued"]
-        return await MindBridgeMcpToolClient(self.settings).handle_report(tool_plan.report_id, tool_plan.risk_level)
+        return await HarborRelayMcpToolClient(self.settings).handle_report(tool_plan.report_id, tool_plan.risk_level)
 
     def save_message(self, user: UserAccount, session: ChatSession, role: MessageRole, content: str) -> None:
         self.db.add(ChatMessage(user_id=user.id, session_id=session.id, role=role.value, content=content))

@@ -1,8 +1,14 @@
-const AUTH_KEY = "mindbridge.auth";
+const AUTH_KEY = "harborrelay.auth";
 
 const state = {
   profile: null,
-  modelName: "mock"
+  modelName: "mock",
+  dashboard: {
+    reports: [],
+    cases: [],
+    excel: [],
+    alerts: []
+  }
 };
 
 const els = {
@@ -16,10 +22,25 @@ const els = {
   metricCases: document.querySelector("#metricCases"),
   metricExcel: document.querySelector("#metricExcel"),
   metricAlerts: document.querySelector("#metricAlerts"),
+  metricHighMeta: document.querySelector("#metricHighMeta"),
+  metricCasesMeta: document.querySelector("#metricCasesMeta"),
+  metricExcelMeta: document.querySelector("#metricExcelMeta"),
+  metricAlertsMeta: document.querySelector("#metricAlertsMeta"),
+  lastUpdated: document.querySelector("#lastUpdated"),
+  trendTotal: document.querySelector("#trendTotal"),
+  activityTrend: document.querySelector("#activityTrend"),
+  riskDistribution: document.querySelector("#riskDistribution"),
+  emotionDistribution: document.querySelector("#emotionDistribution"),
+  intentDistribution: document.querySelector("#intentDistribution"),
+  toolDistribution: document.querySelector("#toolDistribution"),
+  casesCount: document.querySelector("#casesCount"),
+  reportsCount: document.querySelector("#reportsCount"),
+  excelCount: document.querySelector("#excelCount"),
+  alertCount: document.querySelector("#alertCount"),
   cases: document.querySelector("#cases"),
-  traces: document.querySelector("#traces"),
-  traceDetail: document.querySelector("#traceDetail"),
   reports: document.querySelector("#reports"),
+  excelRecords: document.querySelector("#excelRecords"),
+  alertRecords: document.querySelector("#alertRecords"),
   conversationState: document.querySelector("#conversationState"),
   conversationDetail: document.querySelector("#conversationDetail"),
   knowledgeState: document.querySelector("#knowledgeState"),
@@ -78,8 +99,23 @@ function displayTime(value) {
   return value ? new Date(value).toLocaleString() : "";
 }
 
-function caseStatusLabel(status) {
-  return ({ OPEN: "待预警", ALERT_SENT: "待接手", ACKNOWLEDGED: "跟进中", CLOSED: "已关闭" })[status] || status;
+function formatShortDate(value) {
+  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(value);
+}
+
+function percentage(value, total) {
+  return total ? Math.round((value / total) * 100) : 0;
+}
+
+function statusLabel(status) {
+  const labels = {
+    SUCCESS: "成功",
+    FAILED: "失败",
+    OPEN: "待跟进",
+    ALERT_SENT: "已预警",
+    ACKNOWLEDGED: "已确认"
+  };
+  return labels[(status || "").toUpperCase()] || status || "未知";
 }
 
 function roleLabel(role) {
@@ -130,26 +166,53 @@ async function loadAgentStatus() {
 }
 
 async function loadAdminDashboard() {
-  const [reportsRes, casesRes, excelRes, alertsRes, tracesRes] = await Promise.all([
-    api("/api/admin/reports"),
-    api("/api/admin/cases"),
-    api("/api/admin/excel-records"),
-    api("/api/admin/alerts"),
-    api("/api/admin/agent-traces")
-  ]);
-  const reports = await reportsRes.json();
-  const cases = await casesRes.json();
-  const excel = await excelRes.json();
-  const alerts = await alertsRes.json();
-  const traces = await tracesRes.json();
-  els.metricReports.textContent = reports.length;
-  els.metricHigh.textContent = reports.filter((item) => item.riskLevel === "HIGH").length;
-  els.metricCases.textContent = cases.length;
-  els.metricExcel.textContent = excel.length;
-  els.metricAlerts.textContent = alerts.length;
-  renderCases(cases);
-  renderReports(reports);
-  renderTraces(traces);
+  els.refreshAdmin.disabled = true;
+  els.refreshAdmin.textContent = "刷新中";
+  try {
+    const [reportsRes, casesRes, excelRes, alertsRes] = await Promise.all([
+      api("/api/admin/reports"),
+      api("/api/admin/cases"),
+      api("/api/admin/excel-records"),
+      api("/api/admin/alerts")
+    ]);
+    const reports = await reportsRes.json();
+    const cases = await casesRes.json();
+    const excel = await excelRes.json();
+    const alerts = await alertsRes.json();
+    state.dashboard = { reports, cases, excel, alerts };
+
+    const highRisk = reports.filter((item) => item.riskLevel === "HIGH").length;
+    const openCases = cases.filter((item) => item.status === "OPEN").length;
+    const excelSuccess = excel.filter((item) => item.status === "SUCCESS").length;
+    const alertSuccess = alerts.filter((item) => item.status === "SUCCESS").length;
+
+    els.metricReports.textContent = reports.length;
+    els.metricHigh.textContent = highRisk;
+    els.metricCases.textContent = cases.length;
+    els.metricExcel.textContent = excel.length;
+    els.metricAlerts.textContent = alerts.length;
+    els.metricHighMeta.textContent = `占比 ${percentage(highRisk, reports.length)}%`;
+    els.metricCasesMeta.textContent = `待跟进 ${openCases}`;
+    els.metricExcelMeta.textContent = `成功 ${excelSuccess}`;
+    els.metricAlertsMeta.textContent = `发送成功 ${alertSuccess}`;
+    els.lastUpdated.textContent = `更新于 ${new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
+    els.casesCount.textContent = `${cases.length} 个个案`;
+    els.reportsCount.textContent = `${reports.length} 条报告`;
+    els.excelCount.textContent = `${excel.length} 条`;
+    els.alertCount.textContent = `${alerts.length} 条`;
+
+    renderTrend(reports);
+    renderAnalytics(reports, excel, alerts);
+    renderCases(cases);
+    renderReports(reports);
+    renderToolRecords(els.excelRecords, excel, "excel");
+    renderToolRecords(els.alertRecords, alerts, "alert");
+  } catch (error) {
+    els.lastUpdated.textContent = `刷新失败：${error.message}`;
+  } finally {
+    els.refreshAdmin.disabled = false;
+    els.refreshAdmin.textContent = "刷新数据";
+  }
 }
 
 async function loadKnowledgeStatus() {
@@ -160,6 +223,155 @@ async function loadKnowledgeStatus() {
     els.knowledgeState.textContent = `DB ${status.databaseChunks} 片段 · ${vector}`;
   } catch (error) {
     els.knowledgeState.textContent = `读取失败：${error.message}`;
+  }
+}
+
+function localDateKey(value) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function renderTrend(reports) {
+  const days = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - offset);
+    days.push({
+      date,
+      key: localDateKey(date),
+      count: 0
+    });
+  }
+  const dayMap = new Map(days.map((item) => [item.key, item]));
+  for (const report of reports) {
+    const day = dayMap.get(localDateKey(report.createdAt));
+    if (day) day.count += 1;
+  }
+  const max = Math.max(1, ...days.map((item) => item.count));
+  const total = days.reduce((sum, item) => sum + item.count, 0);
+  els.trendTotal.textContent = `共 ${total} 条`;
+  els.activityTrend.innerHTML = "";
+
+  for (const item of days) {
+    const column = document.createElement("div");
+    column.className = "trend-column";
+    column.title = `${formatShortDate(item.date)}：${item.count} 条报告`;
+
+    const value = document.createElement("strong");
+    value.textContent = item.count;
+    const track = document.createElement("div");
+    track.className = "trend-track";
+    const bar = document.createElement("span");
+    bar.style.height = `${item.count ? Math.max(12, (item.count / max) * 100) : 4}%`;
+    track.append(bar);
+    const label = document.createElement("small");
+    label.textContent = formatShortDate(item.date);
+
+    column.append(value, track, label);
+    els.activityTrend.append(column);
+  }
+}
+
+function countBy(items, key) {
+  return items.reduce((result, item) => {
+    const value = String(item[key] || "UNKNOWN").toUpperCase();
+    result[value] = (result[value] || 0) + 1;
+    return result;
+  }, {});
+}
+
+function renderDistribution(container, definitions, counts) {
+  container.innerHTML = "";
+  const total = definitions.reduce((sum, item) => sum + (counts[item.key] || 0), 0);
+  for (const item of definitions) {
+    const count = counts[item.key] || 0;
+    const row = document.createElement("div");
+    row.className = "distribution-row";
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    const track = document.createElement("div");
+    track.className = "distribution-track";
+    const fill = document.createElement("span");
+    fill.className = `distribution-fill tone-${item.tone}`;
+    fill.style.width = `${percentage(count, total)}%`;
+    track.append(fill);
+    const value = document.createElement("strong");
+    value.textContent = count;
+
+    row.append(label, track, value);
+    container.append(row);
+  }
+}
+
+function renderAnalytics(reports, excel, alerts) {
+  renderDistribution(els.riskDistribution, [
+    { key: "LOW", label: "低风险", tone: "teal" },
+    { key: "MEDIUM", label: "中风险", tone: "amber" },
+    { key: "HIGH", label: "高风险", tone: "red" }
+  ], countBy(reports, "riskLevel"));
+
+  renderDistribution(els.emotionDistribution, [
+    { key: "NORMAL", label: "平稳", tone: "teal" },
+    { key: "ANXIETY", label: "焦虑", tone: "amber" },
+    { key: "DEPRESSED", label: "低落", tone: "orange" },
+    { key: "HIGH_RISK", label: "高风险", tone: "red" }
+  ], countBy(reports, "emotion"));
+
+  renderDistribution(els.intentDistribution, [
+    { key: "CHAT", label: "日常交流", tone: "blue" },
+    { key: "CONSULT", label: "心理咨询", tone: "amber" },
+    { key: "RISK", label: "风险干预", tone: "red" }
+  ], countBy(reports, "intent"));
+
+  const toolCounts = {
+    EXCEL_SUCCESS: excel.filter((item) => item.status === "SUCCESS").length,
+    EXCEL_FAILED: excel.filter((item) => item.status === "FAILED").length,
+    ALERT_SUCCESS: alerts.filter((item) => item.status === "SUCCESS").length,
+    ALERT_FAILED: alerts.filter((item) => item.status === "FAILED").length
+  };
+  renderDistribution(els.toolDistribution, [
+    { key: "EXCEL_SUCCESS", label: "台账成功", tone: "teal" },
+    { key: "EXCEL_FAILED", label: "台账失败", tone: "red" },
+    { key: "ALERT_SUCCESS", label: "预警成功", tone: "blue" },
+    { key: "ALERT_FAILED", label: "预警失败", tone: "red" }
+  ], toolCounts);
+}
+
+function renderToolRecords(container, records, kind) {
+  container.innerHTML = "";
+  if (!records.length) {
+    const empty = document.createElement("div");
+    empty.className = "delivery-empty";
+    empty.textContent = kind === "excel" ? "暂无 Excel 写入记录" : "暂无预警发送记录";
+    container.append(empty);
+    return;
+  }
+  for (const item of records.slice(0, 4)) {
+    const card = document.createElement("article");
+    card.className = "delivery-record";
+
+    const head = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = `报告 #${item.reportId}`;
+    const badge = document.createElement("span");
+    badge.className = `status-badge status-${String(item.status || "").toLowerCase()}`;
+    badge.textContent = statusLabel(item.status);
+    head.append(title, badge);
+
+    const meta = document.createElement("small");
+    meta.textContent = kind === "excel"
+      ? `${displayTime(item.createdAt)}${item.filePath ? ` · ${item.filePath}` : ""}`
+      : `${item.channel || "通知"} · ${item.recipient || "未配置接收人"} · ${displayTime(item.createdAt)}`;
+    const message = document.createElement("p");
+    message.textContent = item.message || "无附加信息";
+    card.append(head, meta, message);
+    container.append(card);
   }
 }
 
@@ -175,140 +387,28 @@ function renderCases(cases) {
 
     const head = document.createElement("div");
     head.className = "case-head";
+    const titleLine = document.createElement("div");
+    titleLine.className = "record-title-line";
     const title = document.createElement("strong");
-    title.textContent = `个案 #${item.id} · ${caseStatusLabel(item.status)}`;
+    title.textContent = `个案 #${item.id}`;
+    const badge = document.createElement("span");
+    badge.className = `status-badge case-status-${String(item.status || "").toLowerCase()}`;
+    badge.textContent = statusLabel(item.status);
+    titleLine.append(title, badge);
     const time = document.createElement("span");
     time.textContent = displayTime(item.updatedAt);
-    head.append(title, time);
+    head.append(titleLine, time);
 
     const meta = document.createElement("small");
-    meta.textContent = `报告 #${item.reportId} · ${item.riskLevel} · ${["ACKNOWLEDGED", "CLOSED"].includes(item.status) ? `接手人 ${item.owner}` : "尚未接手"}`;
+    meta.textContent = `报告 #${item.reportId} · ${item.riskLevel} · 负责人：${item.owner || "未分配"}`;
     const summary = document.createElement("p");
     summary.textContent = item.summary || "";
     const handoff = document.createElement("pre");
     handoff.textContent = item.handoffSummary || "";
 
     card.append(head, meta, summary, handoff);
-    const actions = document.createElement("div");
-    actions.className = "case-actions";
-    const feedback = document.createElement("small");
-    feedback.setAttribute("role", "status");
-    if (["OPEN", "ALERT_SENT"].includes(item.status)) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "primary";
-      button.textContent = "接手个案";
-      button.addEventListener("click", () => runCaseAction(item.id, "acknowledge", "", feedback, button));
-      actions.append(button);
-    }
-    if (item.status === "ACKNOWLEDGED") {
-      const input = document.createElement("textarea");
-      input.placeholder = "填写跟进记录或关闭处理结果";
-      input.maxLength = 2000;
-      input.setAttribute("aria-label", `个案 ${item.id} 跟进记录`);
-      actions.append(input);
-      for (const [action, label] of [["notes", "添加跟进"], ["close", "关闭个案"]]) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = action === "close" ? "ghost" : "primary";
-        button.textContent = label;
-        button.addEventListener("click", () => runCaseAction(item.id, action, input.value, feedback, button));
-        actions.append(button);
-      }
-    }
-    const history = document.createElement("details");
-    const historyLabel = document.createElement("summary");
-    historyLabel.textContent = "查看处理记录";
-    history.append(historyLabel);
-    history.addEventListener("toggle", () => {
-      if (history.open) loadCaseNotes(item.id, history);
-    });
-    actions.append(feedback, history);
-    card.append(actions);
     els.cases.append(card);
   }
-}
-
-async function runCaseAction(caseId, action, note, feedback, button) {
-  if (action !== "acknowledge" && !note.trim()) {
-    feedback.textContent = "请先填写处理内容";
-    return;
-  }
-  button.disabled = true;
-  feedback.textContent = "正在保存...";
-  try {
-    await api(`/api/admin/cases/${caseId}/${action}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note: note.trim() })
-    });
-    await loadAdminDashboard();
-  } catch (error) {
-    feedback.textContent = `操作失败：${error.message}`;
-    button.disabled = false;
-  }
-}
-
-async function loadCaseNotes(caseId, container) {
-  try {
-    const response = await api(`/api/admin/cases/${caseId}/notes`);
-    const notes = await response.json();
-    container.querySelectorAll(".case-note").forEach((node) => node.remove());
-    for (const note of notes) {
-      const row = document.createElement("p");
-      row.className = "case-note";
-      row.textContent = `${displayTime(note.createdAt)} · ${note.actor}：${note.note}`;
-      container.append(row);
-    }
-    if (!notes.length) {
-      const row = document.createElement("p");
-      row.className = "case-note";
-      row.textContent = "暂无处理记录";
-      container.append(row);
-    }
-  } catch (error) {
-    const row = document.createElement("p");
-    row.className = "case-note";
-    row.textContent = `记录读取失败：${error.message}`;
-    container.append(row);
-  }
-}
-
-function renderTraces(traces) {
-  els.traces.innerHTML = "";
-  if (!traces.length) {
-    els.traces.textContent = "暂无执行记录";
-    return;
-  }
-  for (const trace of traces) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "trace-item ghost";
-    button.textContent = `#${trace.id} · ${trace.intent} · ${trace.riskLevel} · ${displayTime(trace.createdAt)}`;
-    button.addEventListener("click", () => renderTraceDetail(trace));
-    els.traces.append(button);
-  }
-}
-
-function renderTraceDetail(trace) {
-  els.traceDetail.innerHTML = "";
-  const title = document.createElement("h3");
-  title.textContent = `执行 #${trace.id} · ${trace.intent} · ${trace.riskLevel}`;
-  els.traceDetail.append(title);
-  for (const step of trace.agentSteps || []) {
-    const row = document.createElement("div");
-    row.className = "trace-step";
-    const heading = document.createElement("strong");
-    heading.textContent = `${step.step ?? ""}. ${step.agent || "Agent"} · ${step.action || ""}`;
-    const observation = document.createElement("p");
-    observation.textContent = step.observation || "";
-    row.append(heading, observation);
-    els.traceDetail.append(row);
-  }
-  const sources = document.createElement("p");
-  const names = [...new Set((trace.retrievedKnowledge || []).map((item) => item.source).filter(Boolean))];
-  sources.textContent = names.length ? `检索来源：${names.join("、")}` : "本轮未使用知识库检索";
-  els.traceDetail.append(sources);
 }
 
 function renderReports(reports) {
@@ -325,16 +425,22 @@ function renderReports(reports) {
 
     const head = document.createElement("div");
     head.className = "report-head";
+    const titleLine = document.createElement("div");
+    titleLine.className = "record-title-line";
     const title = document.createElement("strong");
-    title.textContent = `${item.displayName} · ${item.riskLevel}`;
+    title.textContent = item.displayName || item.username || "未知学生";
+    const badge = document.createElement("span");
+    badge.className = `risk-badge risk-${String(item.riskLevel || "low").toLowerCase()}`;
+    badge.textContent = item.riskLevel || "LOW";
+    titleLine.append(title, badge);
     const time = document.createElement("span");
     time.textContent = displayTime(item.createdAt);
-    head.append(title, time);
+    head.append(titleLine, time);
 
     const summary = document.createElement("p");
     summary.textContent = item.summary;
     const content = document.createElement("small");
-    content.textContent = item.content;
+    content.textContent = `${item.emotion || "NORMAL"} / ${item.intent || "CHAT"} · ${item.content}`;
     const action = document.createElement("span");
     action.className = "report-action";
     action.textContent = "查看会话档案";

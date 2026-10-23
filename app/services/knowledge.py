@@ -58,35 +58,31 @@ class KnowledgeService:
     def status(self) -> dict:
         vector_chunks = None
         vector_error = getattr(self.vector_store, "error", "")
-        vector_available = self.vector_store.available
         if self.vector_store.can_embed:
-            if not self.vector_store.check_provider_available():
-                vector_available = False
-                vector_error = self.vector_store.error
             try:
                 vector_chunks = self.vector_store.count()
             except Exception as exc:
-                self.vector_store.record_error(exc)
-                vector_available = False
-                vector_error = self.vector_store.error
+                vector_error = f"{type(exc).__name__}: {exc}"
         return {
             "retrievalOrder": [
                 PRIMARY_RETRIEVAL_LABEL,
-                f"{FALLBACK_RETRIEVAL_LABEL} when Chroma or the configured embedding provider is unavailable",
+                f"{FALLBACK_RETRIEVAL_LABEL} when embedding/chromadb/vector service is unavailable",
             ],
             "primaryRetrieval": PRIMARY_RETRIEVAL_LABEL,
             "fallbackRetrieval": FALLBACK_RETRIEVAL_LABEL,
             "databaseChunks": self.count(),
             "vectorEnabled": self.settings.knowledge_vector_enabled,
-            "vectorAvailable": vector_available,
+            "vectorAvailable": self.vector_store.can_embed,
             "vectorRequired": self.settings.knowledge_vector_required,
-            "embeddingProvider": self.vector_store.embedding_provider,
-            "embeddingModel": self.vector_store.embedding_model,
-            "embeddingDimension": self.vector_store.embedding_dimension,
+            "embeddingProvider": self.settings.embedding_provider.lower(),
+            "embeddingModel": (
+                self.settings.ollama_embedding_model
+                if self.settings.embedding_provider.lower() == "ollama"
+                else self.settings.openai_embedding_model
+            ),
             "vectorChunks": vector_chunks,
             "chromaPersistDir": self.settings.chroma_persist_dir,
-            "chromaBaseCollectionName": self.settings.chroma_collection_name,
-            "chromaCollectionName": self.vector_store.collection_name,
+            "chromaCollectionName": self.settings.chroma_collection_name,
             "chromaSnapshotDir": self.settings.chroma_snapshot_dir,
             "candidateK": self.settings.knowledge_candidate_k,
             "hybridVectorWeight": self.settings.knowledge_hybrid_vector_weight,
@@ -97,27 +93,11 @@ class KnowledgeService:
 
     def rebuild_vector_index(self) -> int:
         if not self.vector_store.can_embed:
-            raise RuntimeError(getattr(self.vector_store, "error", "") or "Chroma vector retrieval is unavailable.")
-        rows = (
-            self.db.query(KnowledgeChunk)
-            .order_by(KnowledgeChunk.source.asc(), KnowledgeChunk.source_index.asc())
-            .all()
-        )
-        try:
-            embeddings = self._embeddings_for_chunks(rows, force_refresh=True)
-            for chunk, embedding in zip(rows, embeddings):
-                chunk.embedding_json = serialize_embedding(
-                    embedding,
-                    self.vector_store.embedding_provider,
-                    self.vector_store.embedding_model,
-                )
-            indexed = self.vector_store.sync_chunks(rows, embeddings)
-            self.db.commit()
-            return indexed
-        except Exception as exc:
-            self.db.rollback()
-            self.vector_store.record_error(exc)
-            raise RuntimeError(self.vector_store.error) from exc
+            raise RuntimeError(getattr(self.vector_store, "error", "") or "Chroma 向量库不可用")
+        rows = self.db.query(KnowledgeChunk).order_by(KnowledgeChunk.source.asc(), KnowledgeChunk.source_index.asc()).all()
+        self._sync_vector_chunks(rows)
+        self.db.commit()
+        return len(rows)
 
     def backup_vector_index(self) -> str:
         if not self.vector_store.can_embed:
@@ -253,24 +233,12 @@ class KnowledgeService:
         return results
 
     def _ensure_vector_index(self) -> None:
-        rows = (
-            self.db.query(KnowledgeChunk)
-            .order_by(KnowledgeChunk.source.asc(), KnowledgeChunk.source_index.asc())
-            .all()
-        )
+        rows = self.db.query(KnowledgeChunk).order_by(KnowledgeChunk.source.asc(), KnowledgeChunk.source_index.asc()).all()
         if not rows:
             return
         if (
             self.vector_store.count() == len(rows)
-            and all(
-                parse_embedding(
-                    row.embedding_json,
-                    self.vector_store.embedding_provider,
-                    self.vector_store.embedding_model,
-                )
-                is not None
-                for row in rows
-            )
+            and all(row.embedding_json for row in rows)
             and self.vector_store.has_exact_chunk_ids(rows)
         ):
             return
@@ -291,11 +259,7 @@ class KnowledgeService:
         try:
             embeddings = self._embeddings_for_chunks(chunks)
             for chunk, embedding in zip(chunks, embeddings):
-                chunk.embedding_json = serialize_embedding(
-                    embedding,
-                    self.vector_store.embedding_provider,
-                    self.vector_store.embedding_model,
-                )
+                chunk.embedding_json = json.dumps(embedding, separators=(",", ":"))
             self.vector_store.upsert_chunks(chunks, embeddings)
         except Exception as exc:
             self._handle_vector_error("index", exc)
@@ -304,31 +268,19 @@ class KnowledgeService:
         if not chunks or not self.vector_store.can_embed:
             return
         try:
-            embeddings = self._embeddings_for_chunks(chunks)
+            embeddings = self._embeddings_for_chunks(chunks, refresh=True)
             for chunk, embedding in zip(chunks, embeddings):
-                chunk.embedding_json = serialize_embedding(
-                    embedding,
-                    self.vector_store.embedding_provider,
-                    self.vector_store.embedding_model,
-                )
+                chunk.embedding_json = json.dumps(embedding, separators=(",", ":"))
             self.vector_store.sync_chunks(chunks, embeddings)
         except Exception as exc:
             self._handle_vector_error("sync", exc)
 
-    def _embeddings_for_chunks(
-        self,
-        chunks: list[KnowledgeChunk],
-        force_refresh: bool = False,
-    ) -> list[list[float]]:
+    def _embeddings_for_chunks(self, chunks: list[KnowledgeChunk], refresh: bool = False) -> list[list[float]]:
         embeddings: list[list[float] | None] = []
         missing_indexes = []
         missing_texts = []
         for index, chunk in enumerate(chunks):
-            embedding = None if force_refresh else parse_embedding(
-                chunk.embedding_json,
-                self.vector_store.embedding_provider,
-                self.vector_store.embedding_model,
-            )
+            embedding = None if refresh else parse_embedding(chunk.embedding_json)
             embeddings.append(embedding)
             if embedding is None:
                 missing_indexes.append(index)
@@ -343,7 +295,6 @@ class KnowledgeService:
         return resolved
 
     def _handle_vector_error(self, action: str, exc: Exception) -> None:
-        self.vector_store.record_error(exc)
         if self.settings.knowledge_vector_required:
             raise exc
         logger.warning(
@@ -489,50 +440,19 @@ def replace_score(result: SearchResult, score: float) -> SearchResult:
     return SearchResult(result.chunk_id, result.source, result.content, score)
 
 
-def serialize_embedding(embedding: list[float], provider: str, model: str) -> str:
-    payload = {
-        "provider": provider,
-        "model": model,
-        "dimension": len(embedding),
-        "vector": [float(value) for value in embedding],
-    }
-    return json.dumps(payload, separators=(",", ":"))
-
-
-def parse_embedding(
-    raw: str | None,
-    provider: str | None = None,
-    model: str | None = None,
-) -> list[float] | None:
+def parse_embedding(raw: str | None) -> list[float] | None:
     if not raw:
         return None
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
         return None
-
-    if isinstance(data, dict):
-        if provider is not None and data.get("provider") != provider:
-            return None
-        if model is not None and data.get("model") != model:
-            return None
-        vector = data.get("vector")
-        dimension = data.get("dimension")
-        if not isinstance(vector, list) or not vector:
-            return None
-        if not isinstance(dimension, int) or dimension != len(vector):
-            return None
-        data = vector
-    elif provider is not None or model is not None:
-        # Legacy bare arrays have no provider/model identity and must not be reused
-        # after switching embedding backends.
-        return None
-
     if not isinstance(data, list) or not data:
         return None
-    if not all(isinstance(item, (int, float)) and not isinstance(item, bool) for item in data):
+    if not all(isinstance(item, (int, float)) for item in data):
         return None
     return [float(item) for item in data]
+
 
 def tokenize(text: str) -> list[str]:
     words = re.findall(r"[a-zA-Z0-9_]+|[\u4e00-\u9fff]", text.lower())

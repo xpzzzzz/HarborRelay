@@ -5,18 +5,17 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.agents.factory import agent_framework_status
-from app.agents.runtime import AgentRuntimeService
+from app.agents.event_driven_runtime import EventDrivenAgentRuntimeService
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.security import current_user, require_admin
 from app.models.entities import UserAccount
-from app.schemas.dtos import CaseActionRequest, CaseNoteRequest, KnowledgeIngestRequest, KnowledgeIngestResponse, ChatRequest, authority
+from app.schemas.dtos import KnowledgeIngestRequest, KnowledgeIngestResponse, ChatRequest, authority
 from app.services.chat import ChatService
 from app.services.knowledge import KnowledgeService
 from app.services.model_assets import finetuned_model_status
 from app.services.report import ReportService
-from app.services.skills import MindBridgeSkillLibrary
-from app.services.tools import ToolOrchestrationService
+from app.services.skills import HarborRelaySkillLibrary
 
 router = APIRouter()
 
@@ -48,6 +47,27 @@ async def chat_stream(
     return StreamingResponse(service.stream_chat(user, request), media_type="text/event-stream")
 
 
+@router.get("/api/chat/sessions")
+def chat_sessions(user: Annotated[UserAccount, Depends(current_user)], db: Annotated[Session, Depends(get_db)]):
+    if "ROLE_ADMIN" in user.roles:
+        raise HTTPException(403, "管理员账号不能访问学生会话列表。")
+    return ReportService(db).student_sessions(user.id)
+
+
+@router.get("/api/chat/sessions/{session_id}")
+def chat_conversation(
+    session_id: str,
+    user: Annotated[UserAccount, Depends(current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    if "ROLE_ADMIN" in user.roles:
+        raise HTTPException(403, "管理员账号不能通过学生接口读取会话。")
+    try:
+        return ReportService(db).student_conversation(session_id, user.id)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
 @router.get("/api/agent/status")
 def agent_status(user: Annotated[UserAccount, Depends(current_user)]):
     settings = get_settings()
@@ -61,23 +81,34 @@ def agent_status(user: Annotated[UserAccount, Depends(current_user)]):
         "agentFramework": framework,
         "finetunedModel": finetuned_model_status(settings),
         "agents": [
-            {"name": "MemoryAgent", "status": "READY", "description": "短期上下文与长期记忆摘要"},
-            {"name": "SupervisorAgent", "status": "READY", "description": "意图识别与路由"},
-            {"name": "KnowledgeAgent", "status": "READY", "description": "RAG 检索与证据补充"},
-            {"name": "RiskGuardianAgent", "status": "READY", "description": "心理风险识别与分级"},
-            {"name": "CompanionAgent", "status": "READY", "description": "普通陪伴式回复"},
-            {"name": "CounselorAgent", "status": "READY", "description": "咨询式支持回复"},
+            {"name": "CoordinatorAgent", "status": "READY", "description": "维护任务板、预算、安全门槛、冲突仲裁和最终采纳"},
+            {"name": "UnderstandingAgent", "status": "READY", "description": "独立理解用户输入，发布 intent artifact"},
+            {"name": "SafetyAgent", "status": "READY", "description": "独立风险评估、SAFETY_OVERRIDE 和候选回复安全审查"},
+            {"name": "ContextAgent", "status": "READY", "description": "独立记忆视图、RAG 检索和 skill 上下文聚合"},
+            {"name": "ResponseAgent", "status": "READY", "description": "根据黑板 artifact 发布候选回复方案"},
         ],
-        "skills": MindBridgeSkillLibrary.status_items(),
+        "skills": HarborRelaySkillLibrary.status_items(),
         "runtimeHarness": {
-            "name": "HarborRelay Agent Harness",
+            "name": "HarborRelayAgentHarness",
             "status": "READY",
             "description": "统一管理单轮 Agent run 的输入脱敏、上下文注入、风险报告、工具计划和 trace 输出",
         },
         "loop": {
-            "type": "bounded-agent-loop",
-            "maxSteps": AgentRuntimeService.max_steps,
-            "scheduler": "langgraph-controller" if framework["active"] == "langgraph" else "custom-runtime",
+            "type": "event-driven-multi-agent",
+            "maxSteps": EventDrivenAgentRuntimeService.max_steps,
+            "scheduler": "claim-based-actor-runtime",
+        },
+        "collaboration": {
+            "scheduler": "claim-based",
+            "state": "append-only-blackboard",
+            "messageBus": "per-agent inbox over shared mailbox",
+            "fixedWorkflow": False,
+            "agentIsolation": {
+                "prompt": "per-agent system prompt",
+                "memory": "per-agent private Redis key",
+                "model": "per-agent model profile",
+                "tools": "per-agent tool permissions",
+            },
         },
     }
 
@@ -110,39 +141,6 @@ def admin_cases(_: Annotated[UserAccount, Depends(require_admin)], db: Annotated
 @router.get("/api/admin/cases/{case_id}/notes")
 def admin_case_notes(case_id: int, _: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
     return ReportService(db).case_notes(case_id)
-
-
-@router.post("/api/admin/cases/{case_id}/acknowledge")
-def admin_acknowledge_case(case_id: int, request: CaseActionRequest, user: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
-    try:
-        case = ToolOrchestrationService(db, get_settings()).acknowledge_case(case_id, user.username, request.note)
-    except RuntimeError as exc:
-        raise HTTPException(404, str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(409, str(exc)) from exc
-    return ReportService.case_response(case)
-
-
-@router.post("/api/admin/cases/{case_id}/notes")
-def admin_add_case_note(case_id: int, request: CaseNoteRequest, user: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
-    try:
-        ToolOrchestrationService(db, get_settings()).add_case_note(case_id, user.username, request.note)
-    except RuntimeError as exc:
-        raise HTTPException(404, str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(409, str(exc)) from exc
-    return ReportService(db).case_notes(case_id)
-
-
-@router.post("/api/admin/cases/{case_id}/close")
-def admin_close_case(case_id: int, request: CaseNoteRequest, user: Annotated[UserAccount, Depends(require_admin)], db: Annotated[Session, Depends(get_db)]):
-    try:
-        case = ToolOrchestrationService(db, get_settings()).close_case(case_id, user.username, request.note)
-    except RuntimeError as exc:
-        raise HTTPException(404, str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(409, str(exc)) from exc
-    return ReportService.case_response(case)
 
 
 @router.get("/api/admin/tool-jobs")

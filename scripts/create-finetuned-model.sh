@@ -23,7 +23,7 @@ mkdir -p "$MODEL_DIR"
 
 if [ ! -f "$MODEL_DIR/$GGUF_FILE" ]; then
   if [ -n "$UPSTREAM_GGUF" ] && [ -f "$UPSTREAM_GGUF" ]; then
-    echo "Linking GGUF from upstream MindBridge project..."
+    echo "Linking GGUF from upstream HarborRelay project..."
     ln -sf "$UPSTREAM_GGUF" "$MODEL_DIR/$GGUF_FILE"
   else
     echo "Missing GGUF model file:"
@@ -37,4 +37,4 @@ fi
 "$OLLAMA_BIN" create "$MODEL_NAME" -f "$MODEL_DIR/Modelfile"
 
 echo "Created $MODEL_NAME"
-echo "Run MindBridge Python with: AI_PROVIDER=ollama ./scripts/run-dev.sh"
+echo "Run HarborRelay Python with: AI_PROVIDER=ollama ./scripts/run-dev.sh"

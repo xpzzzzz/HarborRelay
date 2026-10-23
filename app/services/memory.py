@@ -113,7 +113,7 @@ class RedisShortTermMemoryStore:
         )
 
     def _key(self, session_public_id: str) -> str:
-        return f"mindbridge:short-term-memory:{session_public_id}"
+        return f"harborrelay:short-term-memory:{session_public_id}"
 
 
 def compact_history_for_prompt(

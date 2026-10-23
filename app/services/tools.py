@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.config import Settings
 from app.core.enums import RiskCaseStatus, ToolStatus
 from app.models.entities import AlertRecord, CaseNote, ExcelRecord, PsychologicalReport, RiskCase, UserAccount
-from app.services.skills import MindBridgeSkillLibrary
+from app.services.skills import HarborRelaySkillLibrary
 
 
 EXCEL_WRITE_LOCK = threading.Lock()
@@ -61,7 +61,7 @@ class ToolOrchestrationService:
             status=RiskCaseStatus.OPEN.value,
             owner=self._primary_owner(),
             summary=report.summary,
-            handoff_summary=MindBridgeSkillLibrary.counselor_handoff_summary(report, user),
+            handoff_summary=HarborRelaySkillLibrary.counselor_handoff_summary(report, user),
         )
         self.db.add(case)
         self.db.commit()
@@ -83,11 +83,8 @@ class ToolOrchestrationService:
         case = self.db.get(RiskCase, case_id)
         if case is None:
             raise RuntimeError(f"case {case_id} not found")
-        if case.status not in (RiskCaseStatus.OPEN.value, RiskCaseStatus.ALERT_SENT.value):
-            raise ValueError("该个案当前状态不能重复接手")
         actor_name = actor.strip() or "unknown"
         case.status = RiskCaseStatus.ACKNOWLEDGED.value
-        case.owner = actor_name
         case.acknowledged_by = actor_name
         case.acknowledged_at = datetime.utcnow()
         case.updated_at = datetime.utcnow()
@@ -100,30 +97,11 @@ class ToolOrchestrationService:
         case = self.db.get(RiskCase, case_id)
         if case is None:
             raise RuntimeError(f"case {case_id} not found")
-        if case.status != RiskCaseStatus.ACKNOWLEDGED.value:
-            raise ValueError("请先接手未关闭的个案")
-        if not note.strip():
-            raise ValueError("跟进记录不能为空")
         case.updated_at = datetime.utcnow()
         self.db.add(case)
         record = self._add_case_note(case.id, actor.strip() or "unknown", note.strip())
         self.db.commit()
         return record
-
-    def close_case(self, case_id: int, actor: str, note: str) -> RiskCase:
-        case = self.db.get(RiskCase, case_id)
-        if case is None:
-            raise RuntimeError(f"case {case_id} not found")
-        if case.status != RiskCaseStatus.ACKNOWLEDGED.value:
-            raise ValueError("只有已接手的个案可以关闭")
-        if not note.strip():
-            raise ValueError("关闭个案时请填写处理结果")
-        case.status = RiskCaseStatus.CLOSED.value
-        case.updated_at = datetime.utcnow()
-        self.db.add(case)
-        self._add_case_note(case.id, actor.strip() or "unknown", f"关闭个案：{note.strip()}")
-        self.db.commit()
-        return case
 
     def notify(self, report: PsychologicalReport, case: RiskCase | None = None) -> AlertRecord:
         existing = (
@@ -231,7 +209,7 @@ class ToolOrchestrationService:
         user = self.db.get(UserAccount, report.user_id)
         username = user.username if user else f"userId={report.user_id}"
         display_name = user.display_name if user else ""
-        handoff = case.handoff_summary if case else MindBridgeSkillLibrary.counselor_handoff_summary(report, user)
+        handoff = case.handoff_summary if case else HarborRelaySkillLibrary.counselor_handoff_summary(report, user)
         return "\n".join(
             [
                 "HarborRelay 检测到一条高风险心理预警，请尽快安排辅导员或管理员跟进。",

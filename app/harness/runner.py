@@ -111,7 +111,7 @@ def configure_environment() -> None:
     root = Path(__file__).resolve().parents[2]
     target_dir = root / "target" / "harness"
     target_dir.mkdir(parents=True, exist_ok=True)
-    db_path = target_dir / "mindbridge-harness.sqlite3"
+    db_path = target_dir / "harborrelay-harness.sqlite3"
     for suffix in ["", "-wal", "-shm"]:
         candidate = Path(f"{db_path}{suffix}")
         if candidate.exists():
@@ -119,12 +119,12 @@ def configure_environment() -> None:
 
     os.environ["DATABASE_URL"] = f"sqlite:///{db_path.as_posix()}"
     os.environ["AI_PROVIDER"] = "mock"
-    os.environ["AGENT_FRAMEWORK"] = "custom"
+    os.environ["AGENT_FRAMEWORK"] = "event_driven_multi_agent"
     os.environ["KNOWLEDGE_VECTOR_ENABLED"] = "false"
     os.environ["KNOWLEDGE_VECTOR_REQUIRED"] = "false"
     os.environ["TOOL_QUEUE_ENABLED"] = "false"
     os.environ["ALERT_EMAIL_DELIVERY_MODE"] = "log"
-    os.environ["EXCEL_PATH"] = str((target_dir / "mindbridge-risk-ledger.xlsx").as_posix())
+    os.environ["EXCEL_PATH"] = str((target_dir / "harborrelay-risk-ledger.xlsx").as_posix())
     os.environ["RAG_EVAL_OUTPUT"] = str((target_dir / "rag-eval-report.json").as_posix())
 
 
@@ -150,10 +150,12 @@ def build_context() -> HarnessContext:
 
 
 def install_harness_patches() -> None:
+    import app.agents.event_driven_runtime as runtime_module
     import app.agents.harness as harness_module
-    import app.agents.runtime as runtime_module
+    import app.services.memory as memory_module
 
     harness_module.RedisShortTermMemoryStore = InMemoryShortTermMemoryStore
+    memory_module.RedisShortTermMemoryStore = InMemoryShortTermMemoryStore
     runtime_module.RedisShortTermMemoryStore = InMemoryShortTermMemoryStore
 
 
@@ -286,12 +288,12 @@ def run_risk_safety_harness(context: HarnessContext) -> dict:
 
 
 def run_agent_routing_harness(context: HarnessContext) -> dict:
-    from app.agents.harness import MindBridgeAgentHarness
+    from app.agents.harness import HarborRelayAgentHarness
     from app.core.enums import IntentType, RiskLevel
     from app.models.entities import ChatSession, UserAccount
     from app.schemas.dtos import ChatRequest
 
-    context.settings.agent_framework = "custom"
+    context.settings.agent_framework = "event_driven_multi_agent"
     db = context.session()
     observed = []
     try:
@@ -301,21 +303,21 @@ def run_agent_routing_harness(context: HarnessContext) -> dict:
                 "id": "normal-companion",
                 "message": "帮我解释一下 Python list comprehension。",
                 "intent": IntentType.CHAT.value,
-                "must_steps": ["MemoryAgent", "SupervisorAgent", "CompanionAgent"],
-                "must_not_steps": ["KnowledgeAgent", "RiskGuardianAgent", "CounselorAgent"],
+                "must_steps": ["UnderstandingAgent", "SafetyAgent", "ResponseAgent", "CoordinatorAgent"],
+                "must_not_steps": ["ContextAgent"],
             },
             {
                 "id": "consult-counselor",
                 "message": "我最近压力很大，睡不着，白天也很焦虑。",
                 "intent": IntentType.CONSULT.value,
-                "must_steps": ["MemoryAgent", "SupervisorAgent", "KnowledgeAgent", "RiskGuardianAgent", "CounselorAgent"],
+                "must_steps": ["UnderstandingAgent", "SafetyAgent", "ContextAgent", "ResponseAgent", "CoordinatorAgent"],
             },
             {
                 "id": "risk-counselor",
                 "message": "我不想活了，觉得撑不下去了。",
                 "intent": IntentType.RISK.value,
                 "risk": RiskLevel.HIGH.value,
-                "must_steps": ["MemoryAgent", "SupervisorAgent", "KnowledgeAgent", "RiskGuardianAgent", "CounselorAgent"],
+                "must_steps": ["UnderstandingAgent", "SafetyAgent", "ContextAgent", "ResponseAgent", "CoordinatorAgent"],
             },
         ]
         for case in cases:
@@ -323,7 +325,7 @@ def run_agent_routing_harness(context: HarnessContext) -> dict:
             db.add(session)
             db.commit()
             db.refresh(session)
-            result = MindBridgeAgentHarness(db, context.settings).run(
+            result = HarborRelayAgentHarness(db, context.settings).run(
                 user,
                 ChatRequest(message=case["message"], sessionId=session.public_id),
             )
@@ -348,7 +350,7 @@ def run_agent_routing_harness(context: HarnessContext) -> dict:
 def run_standard_skills_harness(context: HarnessContext) -> dict:
     from app.core.enums import EmotionLabel, IntentType, RiskLevel
     from app.models.entities import PsychologicalReport, UserAccount
-    from app.services.skills import MindBridgeSkillLibrary
+    from app.services.skills import HarborRelaySkillLibrary
 
     expected = {
         "supportive_response_baseline",
@@ -359,17 +361,17 @@ def run_standard_skills_harness(context: HarnessContext) -> dict:
         "referral_resource_guidance",
         "counselor_handoff_summary",
     }
-    skills = MindBridgeSkillLibrary.list_skills()
+    skills = HarborRelaySkillLibrary.list_skills()
     names = {skill.name for skill in skills}
     missing = sorted(expected - names)
     expect(not missing, f"missing standard skills: {missing}")
 
-    statuses = MindBridgeSkillLibrary.status_items()
+    statuses = HarborRelaySkillLibrary.status_items()
     failed = [item for item in statuses if item["status"] != "READY"]
     expect(not failed, f"standard skill load failures: {failed}")
     expect(all(item["path"].endswith("/SKILL.md") for item in statuses), "skill status did not expose SKILL.md paths")
 
-    selected_names = MindBridgeSkillLibrary.response_skill_names(
+    selected_names = HarborRelaySkillLibrary.response_skill_names(
         IntentType.CONSULT,
         RiskLevel.LOW,
         "我最近焦虑、失眠，考试压力也很大。",
@@ -383,14 +385,14 @@ def run_standard_skills_harness(context: HarnessContext) -> dict:
     ]:
         expect(name in selected_names, f"consult response did not select {name}")
 
-    context_text = MindBridgeSkillLibrary.response_skill_context(
+    context_text = HarborRelaySkillLibrary.response_skill_context(
         IntentType.CONSULT,
         RiskLevel.LOW,
         "我最近焦虑、失眠，考试压力也很大。",
     )
     expect("应用 skill: anxiety_grounding_support" in context_text, "response context did not include standard skill body")
 
-    high_risk_names = MindBridgeSkillLibrary.response_skill_names(
+    high_risk_names = HarborRelaySkillLibrary.response_skill_names(
         IntentType.RISK,
         RiskLevel.HIGH,
         "我不想活了。",
@@ -416,7 +418,7 @@ def run_standard_skills_harness(context: HarnessContext) -> dict:
         password_hash="unused",
         roles_csv="ROLE_USER",
     )
-    handoff = MindBridgeSkillLibrary.counselor_handoff_summary(report, user)
+    handoff = HarborRelaySkillLibrary.counselor_handoff_summary(report, user)
     for term in ["应用 skill: counselor_handoff_summary", "报告ID：7", "测试学生 (student)", "立即跟进"]:
         expect(term in handoff, f"handoff summary missing {term}")
 

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import re
 import shutil
 from dataclasses import dataclass
 from datetime import datetime
@@ -31,126 +29,72 @@ class VectorSearchHit:
 
 
 class ChromaKnowledgeStore:
-    """Provider-aware embeddings stored and queried in a persistent Chroma collection."""
-
-    SUPPORTED_EMBEDDING_PROVIDERS = {"openai", "ollama"}
+    """Store and query Ollama or OpenAI embeddings in Chroma."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.embedding_provider = settings.knowledge_embedding_provider.strip().lower()
-        self.embedding_model = self._configured_embedding_model()
-        self.embedding_dimension: int | None = None
         self.can_embed = False
         self.error = ""
-        self.persist_dir = self._resolve_path(settings.chroma_persist_dir)
-        self.collection_name = self._build_collection_name()
-        self.client = None
-        self.collection = None
-
+        self.embedding_provider = settings.embedding_provider.lower()
+        self.embedding_model = (
+            settings.ollama_embedding_model if self.embedding_provider == "ollama" else settings.openai_embedding_model
+        )
         if not settings.knowledge_vector_enabled:
-            self.error = "Chroma vector retrieval is disabled."
+            self.error = "Chroma 向量库未启用"
             return
-        if self.embedding_provider not in self.SUPPORTED_EMBEDDING_PROVIDERS:
-            self._set_unavailable(
-                f"Unsupported KNOWLEDGE_EMBEDDING_PROVIDER: {self.embedding_provider!r}. "
-                "Expected 'openai' or 'ollama'."
-            )
+        if self.embedding_provider not in {"ollama", "openai"}:
+            self._unavailable(f"不支持的 embedding provider: {self.embedding_provider}")
             return
         if self.embedding_provider == "openai" and not settings.openai_api_key:
-            self._set_unavailable(
-                f"OPENAI_API_KEY is missing; OpenAI embeddings are unavailable. "
-                f"Falling back to {FALLBACK_RETRIEVAL_LABEL}."
-            )
+            self._unavailable("缺少 OPENAI_API_KEY，OpenAI embedding 不可用")
             return
-
         try:
             import chromadb
-            from chromadb.config import Settings as ChromaSettings
         except ImportError as exc:
-            self._set_unavailable(
-                f"chromadb is not installed; vector retrieval is unavailable. "
-                f"Falling back to {FALLBACK_RETRIEVAL_LABEL}.",
-                exc,
-            )
+            self._unavailable(f"缺少 chromadb 依赖: {exc}")
             return
 
+        persist_dir = self._resolve_path(settings.chroma_persist_dir)
         try:
-            self.persist_dir.mkdir(parents=True, exist_ok=True)
-            self.client = chromadb.PersistentClient(
-                path=str(self.persist_dir),
-                settings=ChromaSettings(anonymized_telemetry=False),
-            )
+            persist_dir.mkdir(parents=True, exist_ok=True)
+            self.persist_dir = persist_dir
+            self.client = chromadb.PersistentClient(path=str(persist_dir))
             self.collection = self.client.get_or_create_collection(
-                name=self.collection_name,
+                name=settings.chroma_collection_name,
                 embedding_function=None,
-                metadata=self._collection_metadata(),
+                metadata={
+                    "hnsw:space": "cosine",
+                    "embedding_provider": self.embedding_provider,
+                    "embedding_model": self.embedding_model,
+                },
             )
             metadata = self.collection.metadata or {}
-            stored_dimension = metadata.get("embedding_dimension")
-            if isinstance(stored_dimension, int) and stored_dimension > 0:
-                self.embedding_dimension = stored_dimension
-            else:
-                self.embedding_dimension = self._infer_collection_dimension()
-            self.can_embed = True
+            if metadata.get("embedding_model") and (
+                metadata["embedding_model"] != self.embedding_model
+                or metadata.get("embedding_provider", "openai") != self.embedding_provider
+            ):
+                raise VectorStoreUnavailable("向量集合使用了其他 embedding 模型，请更换 CHROMA_COLLECTION_NAME")
         except Exception as exc:
-            self._set_unavailable(
-                f"Failed to initialize Chroma collection {self.collection_name!r}: "
-                f"{type(exc).__name__}: {exc}",
-                exc,
-            )
+            self._unavailable(f"Chroma 初始化失败: {exc}")
+            return
+        self.can_embed = True
 
-    @property
-    def available(self) -> bool:
-        return self.can_embed and not self.error
-
-    def check_provider_available(self) -> bool:
-        if not self.can_embed:
-            return False
-        if self.embedding_provider != "ollama":
-            return True
-        try:
-            response = httpx.get(
-                self._ollama_endpoint("tags"),
-                timeout=self.settings.embedding_timeout_seconds,
-            )
-            response.raise_for_status()
-            models = response.json().get("models", [])
-            names = {
-                str(value)
-                for item in models
-                if isinstance(item, dict)
-                for value in (item.get("name"), item.get("model"))
-                if value
-            }
-            if self.embedding_model not in names:
-                raise VectorStoreUnavailable(
-                    f"Ollama model {self.embedding_model!r} is not present in /api/tags."
-                )
-            self.error = ""
-            return True
-        except Exception as exc:
-            self.record_error(exc)
-            return False
+    def _unavailable(self, message: str) -> None:
+        if self.settings.knowledge_vector_required:
+            raise VectorStoreUnavailable(message)
+        self.error = f"{message}，已回退到{FALLBACK_RETRIEVAL_LABEL}"
 
     def upsert_chunks(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> int:
-        if len(chunks) != len(embeddings):
-            raise VectorStoreUnavailable("Embedding count did not match the knowledge chunk count.")
-        pairs = [
-            (chunk, embedding)
-            for chunk, embedding in zip(chunks, embeddings)
-            if chunk.id is not None and chunk.content.strip()
-        ]
-        if not pairs:
+        rows = [chunk for chunk in chunks if chunk.id is not None and chunk.content.strip()]
+        if not rows:
             return 0
-        rows = [chunk for chunk, _ in pairs]
-        vectors = self._validate_embeddings([embedding for _, embedding in pairs], len(pairs))
-        ids = [self._id(int(chunk.id)) for chunk in rows]
+        ids = [self._id(chunk.id) for chunk in rows]
         documents = [chunk.content for chunk in rows]
         metadatas = [
             {"db_id": int(chunk.id), "source": chunk.source, "source_index": int(chunk.source_index)}
             for chunk in rows
         ]
-        self.collection.upsert(ids=ids, documents=documents, metadatas=metadatas, embeddings=vectors)
+        self.collection.upsert(ids=ids, documents=documents, metadatas=metadatas, embeddings=embeddings)
         self.snapshot()
         return len(rows)
 
@@ -173,9 +117,8 @@ class ChromaKnowledgeStore:
         self.collection.delete(where={"source": source})
 
     def query(self, query_embedding: list[float], top_k: int) -> list[VectorSearchHit]:
-        vector = self._validate_embeddings([query_embedding], 1)[0]
         result = self.collection.query(
-            query_embeddings=[vector],
+            query_embeddings=[query_embedding],
             n_results=top_k,
             include=["documents", "metadatas", "distances"],
         )
@@ -199,25 +142,8 @@ class ChromaKnowledgeStore:
 
     def embed_texts(self, texts: list[str]) -> list[list[float]]:
         if not self.can_embed:
-            raise VectorStoreUnavailable(self.error or "Vector embeddings are unavailable.")
-        if not texts:
-            return []
-        try:
-            if self.embedding_provider == "ollama":
-                embeddings = self._embed_ollama(texts)
-            else:
-                embeddings = self._embed_openai(texts)
-            self.error = ""
-            return embeddings
-        except VectorStoreUnavailable as exc:
-            self.record_error(exc)
-            raise
-        except Exception as exc:
-            wrapped = VectorStoreUnavailable(
-                f"{self.embedding_provider} embedding request failed: {type(exc).__name__}: {exc}"
-            )
-            self.record_error(wrapped)
-            raise wrapped from exc
+            raise VectorStoreUnavailable(self.error or "Chroma 向量检索不可用")
+        return self._embed(texts)
 
     def snapshot(self) -> str | None:
         if not self.can_embed:
@@ -236,120 +162,32 @@ class ChromaKnowledgeStore:
             return 0
         return int(self.collection.count())
 
-    def record_error(self, exc: Exception) -> None:
-        self.error = f"{type(exc).__name__}: {exc}"
-
-    def _embed_openai(self, texts: list[str]) -> list[list[float]]:
+    def _embed(self, texts: list[str]) -> list[list[float]]:
         payload = {
-            "model": self.settings.openai_embedding_model,
+            "model": self.embedding_model,
             "input": [text if text.strip() else " " for text in texts],
         }
-        response = httpx.post(
-            f"{self.settings.openai_base_url.rstrip('/')}/embeddings",
-            headers={"Authorization": f"Bearer {self.settings.openai_api_key}"},
-            json=payload,
-            timeout=self.settings.embedding_timeout_seconds,
-        )
-        response.raise_for_status()
-        rows = sorted(response.json().get("data", []), key=lambda item: item.get("index", 0))
-        return self._validate_embeddings([row.get("embedding") for row in rows], len(texts))
-
-    def _embed_ollama(self, texts: list[str]) -> list[list[float]]:
-        payload = {
-            "model": self.settings.ollama_embedding_model,
-            "input": [text if text.strip() else " " for text in texts],
-        }
-        response = httpx.post(
-            self._ollama_endpoint("embed"),
-            json=payload,
-            timeout=self.settings.embedding_timeout_seconds,
-        )
-        response.raise_for_status()
-        return self._validate_embeddings(response.json().get("embeddings", []), len(texts))
-
-    def _validate_embeddings(self, embeddings: object, expected_count: int) -> list[list[float]]:
-        if not isinstance(embeddings, list) or len(embeddings) != expected_count:
-            raise VectorStoreUnavailable(
-                f"Embedding response count mismatch: expected {expected_count}, "
-                f"received {len(embeddings) if isinstance(embeddings, list) else 'non-list'}."
-            )
-        resolved: list[list[float]] = []
-        for embedding in embeddings:
-            if not isinstance(embedding, list) or not embedding:
-                raise VectorStoreUnavailable("Embedding response contained an empty or invalid vector.")
-            if not all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in embedding):
-                raise VectorStoreUnavailable("Embedding response contained a non-numeric value.")
-            resolved.append([float(value) for value in embedding])
-        dimensions = {len(embedding) for embedding in resolved}
-        if len(dimensions) != 1:
-            raise VectorStoreUnavailable("Embedding response contained inconsistent vector dimensions.")
-        dimension = dimensions.pop()
-        if self.embedding_dimension is not None and self.embedding_dimension != dimension:
-            raise VectorStoreUnavailable(
-                f"Embedding dimension mismatch for {self.embedding_provider}:{self.embedding_model}: "
-                f"expected {self.embedding_dimension}, received {dimension}."
-            )
-        self._record_embedding_dimension(dimension)
-        return resolved
-
-    def _record_embedding_dimension(self, dimension: int) -> None:
-        # hnsw:space is immutable after collection creation in Chroma 0.5.x.
-        # Do not call collection.modify() with the creation metadata here.
-        # The current process keeps the dimension in memory; after restart it is
-        # recovered from one persisted embedding by _infer_collection_dimension().
-        self.embedding_dimension = dimension
-
-    def _infer_collection_dimension(self) -> int | None:
-        if self.collection is None or self.collection.count() == 0:
-            return None
-        result = self.collection.get(limit=1, include=["embeddings"])
-        embeddings = result.get("embeddings")
-        if embeddings is None or len(embeddings) == 0:
-            return None
-        first = embeddings[0]
-        if first is None:
-            return None
-        dimension = len(first)
-        return dimension if dimension > 0 else None
-
-    def _configured_embedding_model(self) -> str:
         if self.embedding_provider == "ollama":
-            return self.settings.ollama_embedding_model
-        return self.settings.openai_embedding_model
-
-    def _build_collection_name(self) -> str:
-        identity = f"{self.embedding_provider}:{self.embedding_model}"
-        digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:10]
-        safe_base = re.sub(r"[^A-Za-z0-9._-]+", "-", self.settings.chroma_collection_name).strip("._-")
-        safe_base = safe_base or "mindbridge-knowledge"
-        safe_provider = re.sub(r"[^A-Za-z0-9_-]+", "-", self.embedding_provider).strip("_-") or "embedding"
-        suffix = f"-{safe_provider}-{digest}"
-        base_limit = max(3, 63 - len(suffix))
-        base = safe_base[:base_limit].rstrip("._-") or "rag"
-        return f"{base}{suffix}"
-
-    def _collection_metadata(self) -> dict[str, str | int]:
-        metadata: dict[str, str | int] = {
-            "hnsw:space": "cosine",
-            "embedding_provider": self.embedding_provider,
-            "embedding_model": self.embedding_model,
-        }
-        if self.embedding_dimension is not None:
-            metadata["embedding_dimension"] = self.embedding_dimension
-        return metadata
-
-    def _ollama_endpoint(self, endpoint: str) -> str:
-        base = self.settings.ollama_base_url.rstrip("/")
-        if base.endswith("/api"):
-            return f"{base}/{endpoint.lstrip('/')}"
-        return f"{base}/api/{endpoint.lstrip('/')}"
-
-    def _set_unavailable(self, message: str, exc: Exception | None = None) -> None:
-        if self.settings.knowledge_vector_required:
-            if exc is None:
-                raise VectorStoreUnavailable(message)
-            raise VectorStoreUnavailable(message) from exc
-        self.error = message
+            url = f"{self.settings.ollama_base_url.rstrip('/')}/api/embed"
+            headers = {}
+        else:
+            url = f"{self.settings.openai_base_url.rstrip('/')}/embeddings"
+            headers = {"Authorization": f"Bearer {self.settings.openai_api_key}"}
+        response = httpx.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=self.settings.embedding_timeout_seconds,
+        )
+        response.raise_for_status()
+        if self.embedding_provider == "ollama":
+            embeddings = response.json().get("embeddings", [])
+        else:
+            rows = sorted(response.json().get("data", []), key=lambda item: item.get("index", 0))
+            embeddings = [row.get("embedding") for row in rows]
+        if len(embeddings) != len(texts) or any(not embedding for embedding in embeddings):
+            raise VectorStoreUnavailable(f"{self.embedding_provider} embeddings 接口返回向量数量不匹配")
+        return [[float(value) for value in embedding] for embedding in embeddings]
 
     def _resolve_path(self, value: str) -> Path:
         path = Path(value)
@@ -363,5 +201,6 @@ class ChromaKnowledgeStore:
 
     def _id(self, chunk_id: int) -> str:
         return f"knowledge-chunk-{chunk_id}"
+
 
 ChromaKnowledgeVectorStore = ChromaKnowledgeStore

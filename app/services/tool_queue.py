@@ -90,11 +90,11 @@ class ToolQueueWorker:
         self.dispatcher: threading.Thread | None = None
         self.excel_executor = ThreadPoolExecutor(
             max_workers=max(1, settings.tool_queue_excel_workers),
-            thread_name_prefix="mindbridge-excel",
+            thread_name_prefix="harborrelay-excel",
         )
         self.email_executor = ThreadPoolExecutor(
             max_workers=max(1, settings.tool_queue_email_workers),
-            thread_name_prefix="mindbridge-email",
+            thread_name_prefix="harborrelay-email",
         )
         self.email_limiter = RateLimiter(settings.alert_email_rate_limit_per_minute)
 
@@ -102,7 +102,7 @@ class ToolQueueWorker:
         if not self.settings.tool_queue_enabled or self.dispatcher is not None:
             return
         self._recover_running_jobs()
-        self.dispatcher = threading.Thread(target=self._loop, name="mindbridge-tool-dispatcher", daemon=True)
+        self.dispatcher = threading.Thread(target=self._loop, name="harborrelay-tool-dispatcher", daemon=True)
         self.dispatcher.start()
 
     def stop(self) -> None:

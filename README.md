@@ -1,27 +1,49 @@
-# HarborRelay｜校园心理支持与风险协同平台
+# HarborRelay Python
 
-HarborRelay 在原 MindBridge 项目基础上改名。现有数据库名、Redis Key、Chroma collection、MCP 工具名和 Ollama 模型文件名暂时保留原标识，以兼容已有数据与部署；新安装也可通过环境变量逐步迁移。
+## Windows 本地启动
 
-## 核心能力
+Docker Compose 项目名、网页、API 标题、运行时提示词和预警内容统一使用 HarborRelay。
+已有的 Ollama 聊天模型仍使用 `mindbridge-qwen2.5-7b-ft:latest`，直接复用已下载权重，无需重新下载或复制 GGUF。
 
-* 学生端 SSE 流式聊天，前端可展示打字机式输出。
-* Basic Auth 登录，支持学生和管理员角色隔离。
-* LangGraph 多 Agent 工作流：Memory、Supervisor、Knowledge、RiskGuardian、Companion、Counselor，未安装 LangGraph 时自动回退到自研有限循环 runtime。
-* 动态路由 RAG：先判断 `CHAT / CONSULT / RISK`，普通问题不查知识库，咨询和风险场景才进入检索增强。
-* Chroma 向量 RAG 知识库：支持 OpenAI 或 Ollama Embeddings；当前 Docker 默认使用 `nomic-embed-text:latest`，与 BM25 关键词召回融合后进入本地 reranker；向量不可用时保留 BM25 + `hybrid_score` 降级链路。
-* 心理风险评估：高风险词典优先、LLM JSON 评估、关键词兜底。
-* 后台报告：记录情绪标签、情绪分数、风险等级、置信度和摘要，但学生端不展示后台评估结果。
-* 风险个案处理：管理员可接手、填写跟进记录并关闭个案，处理过程保留操作人和时间。
-* Agent 执行详情：后台按单轮展示路由、Agent 步骤和检索来源。
-* 数据闭环：咨询/风险消息完整写入 MySQL，短期上下文写入 Redis，高风险消息写入 Excel 台账并通过邮件发送预警。
-* 本地微调模型接入：支持通过 Ollama 加载 `mindbridge-qwen2.5-7b-ft-q4\\\_k\\\_m.gguf`。
-* OpenAI-compatible API 接入：也可切换到云端模型。
-* MCP 工具服务：暴露 Excel 报告写入和风险通知工具，后端高风险后处理通过 MCP client 调用这些工具。
-* RAG 评测：Recall@K、Precision@K、MRR、NDCG@K、HitRate。
+先安装并打开 Docker Desktop 和 Ollama，在 Ollama 中准备上述聊天模型。配置模板 `.env.docker.example` 使用 Ollama 聊天和
+`nomic-embed-text:latest` 向量模型，不含真实密钥。首次运行启动脚本会自动生成本地 `.env`，并在缺少向量模型时下载该模型。
+在 PowerShell 克隆仓库并启动：
 
-## 管理端处理流程
+```powershell
+git clone https://github.com/xpzzzzz/HarborRelay.git
+cd .\HarborRelay
+powershell -ExecutionPolicy Bypass -File .\scripts\start-local.ps1
+```
 
-中高风险报告生成个案后，管理员在“风险个案闭环”中接手、添加跟进记录，再填写处理结果关闭个案。接手和关闭均会写入 `case_notes`；关闭后的个案只读。管理端“单轮执行记录”展示已有 `agent_run_traces` 中的路由、Agent 步骤和知识来源，不包含新采集的耗时指标。
+已有本地目录（例如 `D:\mind-py`）时，直接在该目录运行启动脚本。也可先执行 `Copy-Item .env.docker.example .env`，
+再执行 `docker compose up -d --build --wait --wait-timeout 240`。首次构建需要联网下载 Python 镜像和依赖。
+
+- 页面：`http://127.0.0.1:8080`
+- 学生账号：`student / student123`
+- 管理员账号：`admin / admin123`
+- MySQL：`127.0.0.1:13306`，数据库、用户名和本地密码均为 `harborrelay`
+- Redis：`127.0.0.1:16379`
+- 日志：`docker compose logs -f app`
+- 停止并保留数据：`powershell -ExecutionPolicy Bypass -File .\scripts\stop-local.ps1`
+
+Compose 会覆盖容器内的 MySQL、Redis 地址。`.env` 中的 `OLLAMA_BASE_URL=http://host.docker.internal:11434` 用于从容器连接宿主机 Ollama。
+如直接在 Windows 上运行 Python，改用 `OLLAMA_BASE_URL=http://127.0.0.1:11434`，使用 Python 3.10 虚拟环境安装 `requirements.txt`。
+
+向量检索通过 `EMBEDDING_PROVIDER=ollama` 在本地运行，不需要 OpenAI API Key。切换到 OpenAI embeddings 时设置
+`EMBEDDING_PROVIDER=openai`、`OPENAI_API_KEY` 和 `OPENAI_EMBEDDING_MODEL`，同时换一个 `CHROMA_COLLECTION_NAME`，避免混用不同模型的向量。
+Compose 会把 `.env` 中的 API、SMTP 等设置传给应用。默认 `ALERT_EMAIL_DELIVERY_MODE=log` 只记录预警；
+实际发邮件还需填写 SMTP 服务器、账号、授权码、发件人与收件人，并改为 `smtp`。
+
+安装了 `httpx` 的 Python 环境可运行真实模型自检：
+
+```powershell
+python -m pip install httpx
+python .\scripts\verify-local.py --risk
+```
+
+该命令会创建标有“本地部署自检”的合成会话，验证普通聊天、咨询检索、风险报告、Excel、个案和日志预警。
+`--risk` 要求 `.env` 中的预警投递模式为 `log`。验收报告保存到 `target/local-verification.json`；
+工程 harness 报告位于 `target/harness/harness-report.json`。
 
 ## 技术栈
 
@@ -33,8 +55,8 @@ Web 框架：FastAPI
 短期记忆：Redis
 配置管理：pydantic-settings，.env
 AI 接入：Ollama，本地微调 GGUF 模型，OpenAI-compatible API，Mock Provider
-Agent 编排：LangGraph bounded agent loop，自研 runtime 兜底
-RAG：本地知识库切块、OpenAI/Ollama Embeddings、Chroma 向量库、BM25、分数融合、本地 reranker、上下文扩展
+Agent 编排：事件驱动黑板协作 runtime
+RAG：本地知识库切块、Ollama / OpenAI Embeddings、Chroma 向量库、BM25、分数融合、本地 reranker、上下文扩展
 流式输出：Server-Sent Events
 文档解析：pypdf
 Excel 台账：openpyxl
@@ -44,19 +66,19 @@ Excel 台账：openpyxl
 工具协议：MCP
 ```
 
-说明：当前 Python 版已经提供 LangGraph runtime，入口在 `app/agents/langgraph\\\_runtime.py`；同时保留 `app/agents/runtime.py` 作为无框架兜底。RAG 默认使用 Chroma 本地持久化向量库做语义召回，同时用 BM25 做关键词召回，再融合并本地 rerank；未安装 Chroma、未配置 `OPENAI\\\_API\\\_KEY` 或向量服务异常时，会自动回退到本地 BM25 + `hybrid\\\_score` reranker，避免演示环境中断。
+说明：当前 Python 版只保留事件驱动多 Agent runtime，入口在 `app/agents/event_driven_runtime.py`。共享返回类型定义在 `app/agents/result.py`。RAG 默认使用 Chroma 本地持久化向量库做语义召回，同时用 BM25 做关键词召回，再融合并本地 rerank；Chroma 或所选 embedding 服务不可用时，会自动回退到本地 BM25 + `hybrid_score` reranker。
 
 ## 目录结构
 
 ```text
 app/
-├── agents/          # LangGraph 多 Agent 编排和自研 runtime 兜底
+├── agents/          # 事件驱动多 Agent runtime
 ├── api/             # FastAPI 路由
 ├── core/            # 配置、数据库、安全、启动初始化
 ├── knowledge/       # 内置校园心理知识库
-├── mcp\\\_tools/       # MCP 工具服务
+├── mcp_tools/       # MCP 工具服务
 ├── models/          # SQLAlchemy 实体
-├── rag\\\_eval/        # RAG 评测脚本和数据集
+├── rag_eval/        # RAG 评测脚本和数据集
 ├── schemas/         # Pydantic DTO
 ├── services/        # AI、聊天、知识库、评估、报告、工具服务
 └── static/          # 原生前端页面
@@ -74,24 +96,24 @@ scripts/
 
 ## Agent loop
 
-每轮对话进入一个 LangGraph bounded agent loop，由 controller 根据共享状态自主选择下一个 Agent，最多执行 8 个 Agent 步，防止心理安全场景出现无限自主循环：
+每轮对话默认进入事件驱动多 Agent 协作 runtime。Coordinator 维护共享黑板和任务板，专业 Agent 根据能力和置信度认领任务，发布 artifact，再由安全审查和最终采纳机制收敛输出：
 
 ```text
-controller
--> MemoryAgent / SupervisorAgent / KnowledgeAgent / RiskGuardianAgent / CompanionAgent / CounselorAgent
--> controller
--> END 或 max\\\_steps=8
+TURN_STARTED
+-> CoordinatorAgent 创建任务
+-> UnderstandingAgent / SafetyAgent / ContextAgent / ResponseAgent 认领任务并发布 artifact
+-> SafetyAgent 审查候选回复
+-> CoordinatorAgent FINAL_ACCEPTED
 -> SSE 流式输出
 ```
 
 各 Agent 分工：
 
-* `MemoryAgent`：优先从 Redis 读取本会话短期记忆；Redis 为空时从 MySQL 最近消息回填，并生成本轮记忆摘要。
-* `SupervisorAgent`：判断 `CHAT / CONSULT / RISK`，决定是否进入心理支持链路。
-* `KnowledgeAgent`：将学生输入改写为知识库查询词，执行 RAG 检索。
-* `RiskGuardianAgent`：执行后台心理状态评估，同时保留高风险词库硬兜底。
-* `CompanionAgent`：处理普通学习、编程、校园事务和闲聊。
-* `CounselorAgent`：结合记忆、RAG 和风险评估，生成心理支持回复 prompt。
+- `CoordinatorAgent`：维护任务板、预算、安全门槛、冲突仲裁和最终采纳。
+- `UnderstandingAgent`：判断 `CHAT / CONSULT / RISK`，发布 intent artifact。
+- `SafetyAgent`：独立评估风险，必要时发布 `SAFETY_OVERRIDE`，并审查候选回复。
+- `ContextAgent`：按需聚合 Redis / MySQL 记忆、RAG 检索结果和 Skill 约束。
+- `ResponseAgent`：根据黑板 artifact 生成候选回复 prompt，等待安全审查和采纳。
 
 ## 安装依赖
 
@@ -102,69 +124,42 @@ pip install -r requirements.txt
 `requirements.txt` 已包含：
 
 ```text
-langchain-core
-langgraph
 chromadb
 pymysql
 redis
 ```
 
-如果交付环境暂时无法安装 LangGraph，系统仍会自动回退到自研 runtime，不影响 Mock 演示和基本功能。
+`AGENT_FRAMEWORK` 仍会读取环境变量，但当前只支持 `event_driven_multi_agent`。历史值或未知值会在状态接口中标记为 fallback，并实际使用事件驱动 runtime。
 
 ## MySQL 和 Redis 配置
 
 系统默认使用 MySQL 保存完整业务数据和完整聊天消息，使用 Redis 保存短期对话记忆。启动服务前先创建数据库：
 
 ```sql
-CREATE DATABASE mindbridge DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4\\\_unicode\\\_ci;
-CREATE USER 'mindbridge'@'%' IDENTIFIED BY 'mindbridge';
-GRANT ALL PRIVILEGES ON mindbridge.\\\* TO 'mindbridge'@'%';
+CREATE DATABASE harborrelay DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'harborrelay'@'%' IDENTIFIED BY 'harborrelay';
+GRANT ALL PRIVILEGES ON harborrelay.* TO 'harborrelay'@'%';
 FLUSH PRIVILEGES;
 ```
 
 `.env` 中配置连接：
 
 ```env
-DATABASE\\\_URL=mysql+pymysql://mindbridge:mindbridge@127.0.0.1:3306/mindbridge?charset=utf8mb4
-REDIS\\\_URL=redis://127.0.0.1:6379/0
-REDIS\\\_MEMORY\\\_TTL\\\_SECONDS=86400
-REDIS\\\_MEMORY\\\_MAX\\\_MESSAGES=40
+DATABASE_URL=mysql+pymysql://harborrelay:harborrelay@127.0.0.1:3306/harborrelay?charset=utf8mb4
+REDIS_URL=redis://127.0.0.1:6379/0
+REDIS_MEMORY_TTL_SECONDS=86400
+REDIS_MEMORY_MAX_MESSAGES=40
 ```
 
-完整聊天记录写入 MySQL 的 `chat\\\_sessions`、`chat\\\_messages` 等表。Redis 只保存每个会话最近 `REDIS\\\_MEMORY\\\_MAX\\\_MESSAGES` 条短期上下文，并通过 `REDIS\\\_MEMORY\\\_TTL\\\_SECONDS` 自动过期。
-
-## 快速启动 Mock 演示
-
-Mock 模式不需要 Ollama 或模型文件，但仍需要 MySQL 和 Redis，适合先演示完整业务流程。
-
-```bash
-cd mindbridge-py
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-AI\\\_PROVIDER=mock uvicorn app.main:app --host 127.0.0.1 --port 8080
-```
-
-浏览器打开：
-
-```text
-http://127.0.0.1:8080
-```
-
-默认账号：
-
-```text
-student / student123
-admin / admin123
-```
+完整聊天记录写入 MySQL 的 `chat_sessions`、`chat_messages` 等表。Redis 只保存每个会话最近 `REDIS_MEMORY_MAX_MESSAGES` 条短期上下文，并通过 `REDIS_MEMORY_TTL_SECONDS` 自动过期。
 
 ## Docker Compose 一键启动
 
 仓库提供 `Dockerfile` 和 `docker-compose.yml`，会启动：
 
-* `mysql`：MySQL 8.4，容器内端口 `3306`，宿主机映射 `13306`
-* `redis`：Redis 7，容器内端口 `6379`，宿主机映射 `16379`
-* `app`：HarborRelay FastAPI 服务，宿主机端口 `8080`
+- `mysql`：MySQL 8.0，容器内端口 `3306`，宿主机映射 `13306`
+- `redis`：Redis 7，容器内端口 `6379`，宿主机映射 `16379`
+- `app`：HarborRelay FastAPI 服务，宿主机端口 `8080`
 
 默认配置会让应用容器访问宿主机 Ollama：
 
@@ -180,68 +175,23 @@ mindbridge-qwen2.5-7b-ft:latest
 
 ## Chroma 向量库与快照
 
-应用启动时会同步 `app/knowledge/*.md` 内置默认知识库到数据库。默认知识覆盖校园心理支持、风险等级、焦虑恐慌、情绪低落、睡眠作息、学业压力、考试季、人际关系、新生适应、咨询转介和隐私边界等主题。
+应用启动时会同步 `app/knowledge/*.md` 内置默认知识库到数据库。当前默认文档覆盖校园心理支持总则、风险等级策略、焦虑恐慌、情绪低落、睡眠作息、学业压力、考试季、人际关系、新生适应、咨询转介和隐私边界等主题；如果默认 md 内容发生变化，重启后对应来源会按当前切块规则刷新入库。
 
-知识库支持两个 embedding provider：
-
-```text
-KNOWLEDGE_EMBEDDING_PROVIDER=ollama
-→ OLLAMA_BASE_URL
-→ OLLAMA_EMBEDDING_MODEL=nomic-embed-text:latest
-→ Ollama /api/embed
-
-KNOWLEDGE_EMBEDDING_PROVIDER=openai
-→ OPENAI_BASE_URL
-→ OPENAI_API_KEY
-→ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-→ OpenAI-compatible /embeddings
-```
-
-Docker 部署推荐配置：
+知识库优先使用 Chroma 持久化向量库。本地配置采用 Ollama `nomic-embed-text`；也可选择 OpenAI `text-embedding-3-small`。查询时会同时取向量候选和 BM25 候选，按配置权重融合后进入本地 reranker。下面是 OpenAI 模式的配置示例：
 
 ```env
-KNOWLEDGE_EMBEDDING_PROVIDER=ollama
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text:latest
-
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_API_KEY=
+OPENAI_API_KEY=你的_API_Key
+EMBEDDING_PROVIDER=openai
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-
 KNOWLEDGE_VECTOR_ENABLED=true
 KNOWLEDGE_VECTOR_REQUIRED=false
 KNOWLEDGE_CANDIDATE_K=16
 KNOWLEDGE_HYBRID_VECTOR_WEIGHT=0.65
 KNOWLEDGE_HYBRID_BM25_WEIGHT=0.35
 KNOWLEDGE_RERANK_ENABLED=true
-
 CHROMA_PERSIST_DIR=data/chroma
-CHROMA_COLLECTION_NAME=mindbridge_knowledge
 CHROMA_SNAPSHOT_DIR=data/chroma-snapshots
-CHROMA_SNAPSHOT_KEEP=5
-EMBEDDING_TIMEOUT_SECONDS=120
 ```
-
-主检索链路：
-
-```text
-Ollama/OpenAI embedding
-→ Chroma 向量召回
-+ BM25 关键词召回
-→ 配置权重融合
-→ 本地 reranker
-→ 相邻知识分块扩展
-```
-
-当 `KNOWLEDGE_VECTOR_REQUIRED=false` 时，如果 Chroma 或当前 embedding provider 不可用，系统自动降级到：
-
-```text
-BM25 + hybrid_score reranker
-```
-
-设为 `true` 时，向量初始化或调用失败会直接暴露错误。
-
-不同 provider 和模型使用独立 Chroma collection。collection identity 包含 provider 和模型哈希，数据库 `embedding_json` 同时记录 provider、model 和 dimension，因此不会把 OpenAI 与 Ollama 向量混合。显式执行重建接口时，会使用当前 provider 重新生成全部知识向量。
 
 管理员接口：
 
@@ -251,55 +201,46 @@ curl -u admin:admin123 -X POST http://127.0.0.1:8080/api/admin/knowledge/rebuild
 curl -u admin:admin123 -X POST http://127.0.0.1:8080/api/admin/knowledge/backup
 ```
 
-正常 Ollama 状态应包含：
-
-```text
-vectorAvailable: true
-embeddingProvider: ollama
-embeddingModel: nomic-embed-text:latest
-embeddingDimension: 768
-vectorChunks: 与 databaseChunks 一致
-vectorError: 空
-```
+当 `KNOWLEDGE_VECTOR_REQUIRED=false` 时，如果 Chroma 或 embedding 服务不可用，系统会降级到本地 BM25 + 词面 rerank；设为 `true` 则启动或检索失败时直接暴露错误。
 
 ## 工具队列、限流与死信
 
-心理报告生成后，工具链不会阻塞学生端流式回复，而是写入 `tool\\\_jobs` 队列表：
+心理报告生成后，工具链不会阻塞学生端流式回复，而是写入 `tool_jobs` 队列表：
 
 ```text
-EXCEL\\\_REPORT
-CASE\\\_CREATE -> ALERT\\\_SEND
+EXCEL_REPORT
+CASE_CREATE -> ALERT_SEND
 ```
 
-Excel 写入使用进程内锁串行化，个案创建保持幂等；预警发送使用独立线程池并支持每分钟限流。失败任务会按延迟重试，超过 `TOOL\\\_QUEUE\\\_MAX\\\_ATTEMPTS` 后进入 `dead\\\_letter\\\_records`。
+Excel 写入使用进程内锁串行化，个案创建保持幂等；预警发送使用独立线程池并支持每分钟限流。失败任务会按延迟重试，超过 `TOOL_QUEUE_MAX_ATTEMPTS` 后进入 `dead_letter_records`。
 
 ```env
-TOOL\\\_QUEUE\\\_ENABLED=true
-TOOL\\\_QUEUE\\\_EXCEL\\\_WORKERS=1
-TOOL\\\_QUEUE\\\_EMAIL\\\_WORKERS=2
-ALERT\\\_EMAIL\\\_RATE\\\_LIMIT\\\_PER\\\_MINUTE=30
-ALERT\\\_EMAIL\\\_DELIVERY\\\_MODE=log
+TOOL_QUEUE_ENABLED=true
+TOOL_QUEUE_EXCEL_WORKERS=1
+TOOL_QUEUE_EMAIL_WORKERS=2
+ALERT_EMAIL_RATE_LIMIT_PER_MINUTE=30
+ALERT_EMAIL_DELIVERY_MODE=log
 ```
 
-`ALERT\\\_EMAIL\\\_DELIVERY\\\_MODE=log` 适合本地演示；生产发邮件时改为 `smtp` 并配置 SMTP。
+`ALERT_EMAIL_DELIVERY_MODE=log` 适合本地演示；生产发邮件时改为 `smtp` 并配置 SMTP。
 
 ## 邮件预警配置
 
 高风险消息会触发心理报告，并由后端通过 MCP 工具调用完成 Excel 台账写入和邮件预警。发送邮件前需要在 `.env` 中配置 SMTP：
 
 ```env
-SMTP\\\_HOST=smtp.example.com
-SMTP\\\_PORT=587
-SMTP\\\_USERNAME=your-account@example.com
-SMTP\\\_PASSWORD=your-smtp-password
-SMTP\\\_USE\\\_TLS=true
-SMTP\\\_USE\\\_SSL=false
-ALERT\\\_EMAIL\\\_FROM=your-account@example.com
-ALERT\\\_EMAIL\\\_TO=counselor@example.com,admin@example.com
-ALERT\\\_EMAIL\\\_SUBJECT\\\_PREFIX=\\\[HarborRelay 高风险预警]
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USERNAME=your-account@example.com
+SMTP_PASSWORD=your-smtp-password
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+ALERT_EMAIL_FROM=your-account@example.com
+ALERT_EMAIL_TO=counselor@example.com,admin@example.com
+ALERT_EMAIL_SUBJECT_PREFIX=[HarborRelay 高风险预警]
 ```
 
-未配置 SMTP 或收件人时，系统不会中断聊天流程，但会在 `alert\\\_records` 中写入 `FAILED` 记录，提示缺少的配置项。
+未配置 SMTP 或收件人时，系统不会中断聊天流程，但会在 `alert_records` 中写入 `FAILED` 记录，提示缺少的配置项。
 
 ## 接入本地微调 GGUF 模型
 
@@ -318,13 +259,13 @@ models/mindbridge-qwen2.5-7b-ft/
 需要放入的 GGUF 权重：
 
 ```text
-models/mindbridge-qwen2.5-7b-ft/mindbridge-qwen2.5-7b-ft-q4\\\_k\\\_m.gguf
+models/mindbridge-qwen2.5-7b-ft/mindbridge-qwen2.5-7b-ft-q4_k_m.gguf
 ```
 
-如果本机已经有其他位置的 GGUF 模型文件，可以通过 `UPSTREAM\\\_GGUF` 指定路径并建立软链接：
+如果本机已经有其他位置的 GGUF 模型文件，可以通过 `UPSTREAM_GGUF` 指定路径并建立软链接：
 
 ```bash
-UPSTREAM\\\_GGUF=/path/to/mindbridge-qwen2.5-7b-ft-q4\\\_k\\\_m.gguf ./scripts/create-finetuned-model.sh
+UPSTREAM_GGUF=/path/to/mindbridge-qwen2.5-7b-ft-q4_k_m.gguf ./scripts/create-finetuned-model.sh
 ```
 
 创建 Ollama 模型：
@@ -342,7 +283,7 @@ UPSTREAM\\\_GGUF=/path/to/mindbridge-qwen2.5-7b-ft-q4\\\_k\\\_m.gguf ./scripts/c
 启动 Python 服务：
 
 ```bash
-AI\\\_PROVIDER=ollama ./scripts/run-dev.sh
+AI_PROVIDER=ollama ./scripts/run-dev.sh
 ```
 
 查看模型接入状态：
@@ -355,53 +296,52 @@ curl -u student:student123 http://127.0.0.1:8080/api/agent/status
 同时 `agentFramework.active` 会显示当前实际使用的 Agent 编排框架：
 
 ```text
-langgraph
-custom
+event_driven_multi_agent
 ```
 
 ## 接入 OpenAI-compatible API
 
 ```bash
-AI\\\_PROVIDER=openai \\\\
-OPENAI\\\_API\\\_KEY=你的\\\_API\\\_Key \\\\
-OPENAI\\\_MODEL=gpt-4o-mini \\\\
-OPENAI\\\_EMBEDDING\\\_MODEL=text-embedding-3-small \\\\
+AI_PROVIDER=openai \
+OPENAI_API_KEY=你的_API_Key \
+OPENAI_MODEL=gpt-4o-mini \
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small \
 uvicorn app.main:app --host 127.0.0.1 --port 8080
 ```
 
-知识库向量检索也使用同一个 `OPENAI\\\_API\\\_KEY` 调用 embeddings API。相关配置：
+选择 `EMBEDDING_PROVIDER=openai` 时，知识库向量检索使用同一个 `OPENAI_API_KEY` 调用 embeddings API。也可以继续独立使用 Ollama embeddings。相关配置：
 
 ```env
-KNOWLEDGE\\\_VECTOR\\\_ENABLED=true
-KNOWLEDGE\\\_VECTOR\\\_REQUIRED=false
-OPENAI\\\_EMBEDDING\\\_MODEL=text-embedding-3-small
-KNOWLEDGE\\\_CANDIDATE\\\_K=16
-KNOWLEDGE\\\_HYBRID\\\_VECTOR\\\_WEIGHT=0.65
-KNOWLEDGE\\\_HYBRID\\\_BM25\\\_WEIGHT=0.35
-KNOWLEDGE\\\_RERANK\\\_ENABLED=true
-CHROMA\\\_PERSIST\\\_DIR=data/chroma
-CHROMA\\\_COLLECTION\\\_NAME=mindbridge\\\_knowledge
+KNOWLEDGE_VECTOR_ENABLED=true
+KNOWLEDGE_VECTOR_REQUIRED=false
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+KNOWLEDGE_CANDIDATE_K=16
+KNOWLEDGE_HYBRID_VECTOR_WEIGHT=0.65
+KNOWLEDGE_HYBRID_BM25_WEIGHT=0.35
+KNOWLEDGE_RERANK_ENABLED=true
+CHROMA_PERSIST_DIR=data/chroma
+CHROMA_COLLECTION_NAME=harborrelay_knowledge
 ```
 
-当 `KNOWLEDGE\\\_VECTOR\\\_REQUIRED=false` 时，缺少 API key 或 Chroma 不可用不会阻断聊天，系统会回退到本地 BM25 + `hybrid\\\_score` reranker。若交付验收要求必须走 Chroma 向量检索，可设置 `KNOWLEDGE\\\_VECTOR\\\_REQUIRED=true`。
+当 `KNOWLEDGE_VECTOR_REQUIRED=false` 时，缺少 API key 或 Chroma 不可用不会阻断聊天，系统会回退到本地 BM25 + `hybrid_score` reranker。若交付验收要求必须走 Chroma 向量检索，可设置 `KNOWLEDGE_VECTOR_REQUIRED=true`。
 
 ## 调用示例
 
 学生流式聊天：
 
 ```bash
-curl -N -u student:student123 \\\\
-  -H 'Content-Type: application/json' \\\\
-  -d '{"message":"我最近很焦虑，晚上总是睡不着"}' \\\\
+curl -N -u student:student123 \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"我最近很焦虑，晚上总是睡不着"}' \
   http://127.0.0.1:8080/api/chat/stream
 ```
 
 高风险示例，会触发心理报告、风险个案创建和预警工具计划；Excel 保留为台账输出，邮件/log 是预警通道之一：
 
 ```bash
-curl -N -u student:student123 \\\\
-  -H 'Content-Type: application/json' \\\\
-  -d '{"message":"我不想活了，感觉撑不下去了"}' \\\\
+curl -N -u student:student123 \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"我不想活了，感觉撑不下去了"}' \
   http://127.0.0.1:8080/api/chat/stream
 ```
 
@@ -414,9 +354,9 @@ curl -u admin:admin123 http://127.0.0.1:8080/api/admin/reports
 管理员追加知识库：
 
 ```bash
-curl -u admin:admin123 \\\\
-  -H 'Content-Type: application/json' \\\\
-  -d '{"source":"sleep-guide","content":"失眠时可先固定起床时间，减少睡前屏幕刺激，必要时联系校心理中心。"}' \\\\
+curl -u admin:admin123 \
+  -H 'Content-Type: application/json' \
+  -d '{"source":"sleep-guide","content":"失眠时可先固定起床时间，减少睡前屏幕刺激，必要时联系校心理中心。"}' \
   http://127.0.0.1:8080/api/admin/knowledge
 ```
 
@@ -425,7 +365,7 @@ curl -u admin:admin123 \\\\
 ## RAG 评测
 
 ```bash
-AI\\\_PROVIDER=mock python -m app.rag\\\_eval.runner
+AI_PROVIDER=mock python -m app.rag_eval.runner
 ```
 
 评测报告输出到：
@@ -433,6 +373,63 @@ AI\\\_PROVIDER=mock python -m app.rag\\\_eval.runner
 ```text
 target/rag-eval-report.json
 ```
+
+## 大模型回答质量评测（LLM-as-Judge）
+
+项目提供独立 Judge 模型评分流程。被测模型与 Judge 使用不同配置，Judge API Key 只从环境变量读取，
+不会写入评测报告。内置 30 条合成用例覆盖普通问答、心理支持、高风险危机和多轮上下文。
+
+```bash
+JUDGE_API_KEY=你的评测模型密钥 \
+JUDGE_MODEL=gpt-4o-mini \
+python -m app.answer_eval.runner --candidate-model mindbridge-qwen2.5-7b-ft:latest --progress
+```
+
+如果评测模型来自其他 OpenAI-compatible 服务，可同时设置：
+
+```env
+JUDGE_BASE_URL=https://api.openai.com/v1
+JUDGE_MODEL=gpt-4o-mini
+JUDGE_API_KEY=
+```
+
+输出：
+
+```text
+target/answer-quality-eval-report.json
+```
+
+Judge 按 1-5 分评价 `safety`、`relevance`、`helpfulness`、`correctnessGroundedness`、
+`empathyTone`、`clarity`，并输出总体均分、通过率、严重失败率、分场景结果和逐案例理由。
+回答质量评测固定使用数据集中的预期意图、风险和参考信息，只测微调模型的回复生成质量，避免把路由/RAG
+错误混入模型回答分数。
+
+## 多 Agent 对照评测
+
+对照评测在相同的 30 条数据上运行：
+
+- 实验组：当前事件驱动多 Agent 完整链路。
+- 基线组：同一个被测模型、同一温度、同一历史和知识库内容，但只使用一次单 Agent 大 Prompt 调用。
+- 评审：隐藏架构身份并以确定性伪随机方式平衡 A/B 位置，由独立 Judge 成对盲评。
+
+```bash
+JUDGE_API_KEY=你的评测模型密钥 \
+JUDGE_MODEL=gpt-4o-mini \
+python -m app.agent_eval.runner --candidate-model mindbridge-qwen2.5-7b-ft:latest --progress
+```
+
+输出：
+
+```text
+target/multi-agent-comparison-report.json
+```
+
+报告包含多 Agent/单 Agent 胜负、各维度均分、通过率、严重失败率、路由/风险准确率、延迟，以及排除平局后的
+精确二项符号检验。只有有效样本不少于 20、多 Agent 胜场更多、`p < 0.05`、总体分差为正且危机场景安全分
+不下降时，结论才会标记为 `SUPPORTED`；否则标记为样本不足或尚未证明，避免预设“多 Agent 一定更好”。
+
+首次接入 Judge 时可用 `--limit 2` 做低成本连通性检查。正式报告应运行完整数据集，并固定 Judge 模型版本；
+上线前还应增加心理专业人员的盲评校准。
 
 ## 单元测试
 
@@ -444,13 +441,13 @@ python -m unittest discover -s tests
 
 ## Agent Runtime Harness
 
-线上对话通过 `MindBridgeAgentHarness` 组织一次 Agent run。Harness 不改变 LangGraph / custom runtime 内部的多 Agent 协作顺序，而是在外层统一管理：
+线上对话通过 `HarborRelayAgentHarness` 组织一次 Agent run。Harness 不改变事件驱动 runtime 内部的多 Agent 协作方式，而是在外层统一管理：
 
-* 输入脱敏和 session 解析。
-* Memory / Supervisor / Knowledge / RiskGuardian / Response Agent 调用。
-* 心理报告落库和工具计划生成。
-* 学生与助手消息持久化。
-* Agent steps、知识召回、风险结果等 trace 数据输出。
+- 输入脱敏和 session 解析。
+- Agent runtime 调用和多 Agent 协作结果接入。
+- 心理报告落库和工具计划生成。
+- 学生与助手消息持久化。
+- Agent steps、知识召回、风险结果等 trace 数据输出。
 
 因此 HTTP 层只负责认证和 SSE 流式输出，Agent 后处理逻辑集中在 runtime harness 内。
 
@@ -458,12 +455,12 @@ python -m unittest discover -s tests
 
 项目提供一键工程 harness，用 mock AI、临时 SQLite、内存短期记忆和本地输出验证核心链路：
 
-* Risk Safety Harness：高风险识别、报告生成、后台元数据不外显、工具队列入队。
-* Agent Routing Harness：通过 `MindBridgeAgentHarness` 验证 CHAT / CONSULT / RISK 路由和多 Agent 步骤。
-* Standard Skills Harness：验证 `skills/\\\*/SKILL.md` 标准 Skill 加载、选择逻辑和交接摘要模板渲染。
-* RAG Harness：基于内置评测集验证 Recall@K、MRR、NDCG 和 HitRate。
-* API Harness：健康检查、认证授权、SSE 聊天、管理员知识库接口。
-* Tool Queue Harness：Excel / case / alert 依赖、幂等、限流和 dead letter。
+- Risk Safety Harness：高风险识别、报告生成、后台元数据不外显、工具队列入队。
+- Agent Routing Harness：通过 `HarborRelayAgentHarness` 验证 CHAT / CONSULT / RISK 路由和多 Agent 步骤。
+- Standard Skills Harness：验证 `skills/*/SKILL.md` 标准 Skill 加载、选择逻辑和交接摘要模板渲染。
+- RAG Harness：基于内置评测集验证 Recall@K、MRR、NDCG 和 HitRate。
+- API Harness：健康检查、认证授权、SSE 聊天、管理员知识库接口。
+- Tool Queue Harness：Excel / case / alert 依赖、幂等、限流和 dead letter。
 
 ```bash
 python3 -m app.harness.runner
@@ -481,46 +478,26 @@ target/harness/rag-eval-report.json
 MCP Python 包建议使用 Python 3.10 或 3.11 安装运行。
 
 ```bash
-python -m app.mcp\\\_tools.server
+python -m app.mcp_tools.server
 ```
 
 业务后端触发报告后处理时，默认通过异步工具队列复用同一套工具实现；关闭队列后会作为 MCP client 通过 stdio 启动同一个 MCP server。
 
 暴露工具：
 
-* `mindbridge\\\_excel\\\_report`
-* `mindbridge\\\_case\\\_create`
-* `mindbridge\\\_alert\\\_send`
-* `mindbridge\\\_alert\\\_ack`
-* `mindbridge\\\_case\\\_note\\\_add`
-* `mindbridge\\\_alert\\\_notify`
+- `harborrelay_excel_report`
+- `harborrelay_case_create`
+- `harborrelay_alert_send`
+- `harborrelay_alert_ack`
+- `harborrelay_case_note_add`
+- `harborrelay_alert_notify`
 
-内置标准 Skills 位于 `skills/\\\*/SKILL.md`，运行时由 `MindBridgeSkillRegistry` 加载：
+内置标准 Skills 位于 `skills/*/SKILL.md`，运行时由 `HarborRelaySkillRegistry` 加载：
 
-* `supportive\\\_response\\\_baseline`：心理咨询与风险回复的基础共情、边界和学生端表达规则。
-* `high\\\_risk\\\_safety\\\_plan`：高风险时引导模型优先完成短期安全计划。
-* `anxiety\\\_grounding\\\_support`：焦虑、惊恐、崩溃场景的稳定化和 grounding 指引。
-* `sleep\\\_routine\\\_support`：失眠、睡眠节律紊乱场景的安全睡眠建议。
-* `academic\\\_stress\\\_planning`：考试、作业、论文、绩点压力的下一步拆解。
-* `referral\\\_resource\\\_guidance`：校内心理中心、辅导员、可信任支持人和紧急资源转介。
-* `counselor\\\_handoff\\\_summary`：生成给辅导员/管理员看的个案交接摘要模板。
-
-
-
-下次启动
-
-1\.启动ollama和docker
-
-2\.打开 Docker Desktop 软件界面。
-
-
-
-在左侧菜单栏点击 Containers。
-
-
-
-在列表中找到你的项目组（通常以 mindbridge-py 命名，里面包含 app、mysql、redis 三个子项）。
-
-
-
-点击该项目组右侧的 “Start” (播放键图标)，等待它们的状态变为 Running / Healthy。
+- `supportive_response_baseline`：心理咨询与风险回复的基础共情、边界和学生端表达规则。
+- `high_risk_safety_plan`：高风险时引导模型优先完成短期安全计划。
+- `anxiety_grounding_support`：焦虑、惊恐、崩溃场景的稳定化和 grounding 指引。
+- `sleep_routine_support`：失眠、睡眠节律紊乱场景的安全睡眠建议。
+- `academic_stress_planning`：考试、作业、论文、绩点压力的下一步拆解。
+- `referral_resource_guidance`：校内心理中心、辅导员、可信任支持人和紧急资源转介。
+- `counselor_handoff_summary`：生成给辅导员/管理员看的个案交接摘要模板。

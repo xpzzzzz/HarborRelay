@@ -5,7 +5,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from app.agents.harness import MindBridgeAgentHarness
+from app.agents.harness import HarborRelayAgentHarness
 from app.core.config import Settings
 from app.models.entities import UserAccount
 from app.schemas.dtos import ChatRequest, ChatStreamEvent
@@ -20,7 +20,7 @@ class ChatService:
         self.db = db
         self.settings = settings
         self.ai = AiClient(settings)
-        self.agent_harness = MindBridgeAgentHarness(db, settings)
+        self.agent_harness = HarborRelayAgentHarness(db, settings)
 
     async def stream_chat(self, user: UserAccount, request: ChatRequest):
         outcome = self.agent_harness.run(user, request)

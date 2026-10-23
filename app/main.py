@@ -11,7 +11,7 @@ from app.services.tool_queue import get_tool_queue_worker
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="HarborRelay", version="0.1.0")
+    app = FastAPI(title="HarborRelay Python", version="0.1.0")
 
     @app.middleware("http")
     async def no_cache_frontend_assets(request, call_next):

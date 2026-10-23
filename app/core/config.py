@@ -5,13 +5,30 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    agent_framework: str = "langgraph"
+    agent_framework: str = "event_driven_multi_agent"
+    agent_max_rounds: int = 8
+    agent_max_claims_per_round: int = 4
+    agent_max_claims_per_agent: int = 3
+    agent_final_acceptance_min_confidence: float = 0.6
+    agent_model_default_provider: str = ""
+    agent_model_default_model: str = ""
+    agent_model_coordinator_provider: str = ""
+    agent_model_coordinator_model: str = ""
+    agent_model_understanding_provider: str = ""
+    agent_model_understanding_model: str = ""
+    agent_model_safety_provider: str = ""
+    agent_model_safety_model: str = ""
+    agent_model_context_provider: str = ""
+    agent_model_context_model: str = ""
+    agent_model_response_provider: str = ""
+    agent_model_response_model: str = ""
     ai_provider: str = "ollama"
     ai_temperature: float = 0.35
     ai_max_tokens: int = 512
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "mindbridge-qwen2.5-7b-ft:latest"
     ollama_embedding_model: str = "nomic-embed-text:latest"
+    embedding_provider: str = "openai"
     finetuned_model_name: str = "mindbridge-qwen2.5-7b-ft:latest"
     finetuned_model_dir: str = "models/mindbridge-qwen2.5-7b-ft"
     finetuned_model_file: str = "mindbridge-qwen2.5-7b-ft-q4_k_m.gguf"
@@ -19,9 +36,13 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
-    database_url: str = "mysql+pymysql://mindbridge:mindbridge@127.0.0.1:3306/mindbridge?charset=utf8mb4"
+    judge_base_url: str = "https://api.openai.com/v1"
+    judge_api_key: str = ""
+    judge_model: str = "gpt-4o-mini"
+    judge_temperature: float = 0.0
+    judge_timeout_seconds: float = 90.0
+    database_url: str = "mysql+pymysql://harborrelay:harborrelay@127.0.0.1:3306/harborrelay?charset=utf8mb4"
     chat_history_limit: int = 10
-    knowledge_embedding_provider: str = "openai"
     knowledge_top_k: int = 4
     knowledge_candidate_k: int = 16
     knowledge_chunk_size: int = 512
@@ -32,7 +53,7 @@ class Settings(BaseSettings):
     knowledge_vector_enabled: bool = True
     knowledge_vector_required: bool = False
     chroma_persist_dir: str = "data/chroma"
-    chroma_collection_name: str = "mindbridge_knowledge"
+    chroma_collection_name: str = "harborrelay_knowledge"
     chroma_snapshot_dir: str = "data/chroma-snapshots"
     chroma_snapshot_keep: int = 5
     embedding_timeout_seconds: float = 30.0
@@ -40,7 +61,10 @@ class Settings(BaseSettings):
     rag_eval_output: str = "target/rag-eval-report.json"
     rag_eval_enabled: bool = False
     rag_eval_exit_after_run: bool = False
-    excel_path: str = "data/mindbridge-risk-ledger.xlsx"
+    answer_eval_dataset: str = "app/evaluation/mindbridge-response-eval.jsonl"
+    answer_eval_output: str = "target/answer-quality-eval-report.json"
+    agent_eval_output: str = "target/multi-agent-comparison-report.json"
+    excel_path: str = "data/harborrelay-risk-ledger.xlsx"
     redis_url: str = "redis://127.0.0.1:6379/0"
     redis_memory_ttl_seconds: int = 86400
     redis_memory_max_messages: int = 40

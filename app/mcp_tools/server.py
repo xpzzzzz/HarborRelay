@@ -10,11 +10,11 @@ except Exception as exc:  # pragma: no cover
     raise RuntimeError("请先安装 requirements.txt 中的 mcp 依赖") from exc
 
 
-mcp = FastMCP("mindbridge-python-tools")
+mcp = FastMCP("harborrelay-python-tools")
 
 
 @mcp.tool()
-def mindbridge_excel_report(report_id: int) -> str:
+def harborrelay_excel_report(report_id: int) -> str:
     """Write one psychological risk report into the HarborRelay Excel ledger."""
     create_schema()
     db = SessionLocal()
@@ -29,7 +29,7 @@ def mindbridge_excel_report(report_id: int) -> str:
 
 
 @mcp.tool()
-def mindbridge_case_create(report_id: int) -> str:
+def harborrelay_case_create(report_id: int) -> str:
     """Create or return the active HarborRelay risk case for one psychological report."""
     create_schema()
     db = SessionLocal()
@@ -44,7 +44,7 @@ def mindbridge_case_create(report_id: int) -> str:
 
 
 @mcp.tool()
-def mindbridge_alert_send(case_id: int) -> str:
+def harborrelay_alert_send(case_id: int) -> str:
     """Send or record the counselor alert for one HarborRelay risk case."""
     create_schema()
     db = SessionLocal()
@@ -61,7 +61,7 @@ def mindbridge_alert_send(case_id: int) -> str:
 
 
 @mcp.tool()
-def mindbridge_alert_ack(case_id: int, actor: str, note: str = "") -> str:
+def harborrelay_alert_ack(case_id: int, actor: str, note: str = "") -> str:
     """Mark a HarborRelay risk case as acknowledged by a counselor or administrator."""
     create_schema()
     db = SessionLocal()
@@ -75,7 +75,7 @@ def mindbridge_alert_ack(case_id: int, actor: str, note: str = "") -> str:
 
 
 @mcp.tool()
-def mindbridge_case_note_add(case_id: int, actor: str, note: str) -> str:
+def harborrelay_case_note_add(case_id: int, actor: str, note: str) -> str:
     """Append a follow-up note to a HarborRelay risk case."""
     create_schema()
     db = SessionLocal()
@@ -89,7 +89,7 @@ def mindbridge_case_note_add(case_id: int, actor: str, note: str) -> str:
 
 
 @mcp.tool()
-def mindbridge_alert_notify(report_id: int) -> str:
+def harborrelay_alert_notify(report_id: int) -> str:
     """Send a high-risk alert email and record the notification result for one psychological report."""
     create_schema()
     db = SessionLocal()
